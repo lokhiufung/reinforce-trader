@@ -1,0 +1,6 @@
+requests
+pandas
+dash
+dash-bootstrap-components
+
+yfinance

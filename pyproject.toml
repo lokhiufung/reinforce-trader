@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "reinforce-trader"
+version = "0.1.0"
+description = ""
+authors = ["lokhiufung <lokhiufung123@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.103.0"
+pymongo = "^4.5.0"
+pandas = "^2.1.0"
+dash = "^2.13.0"
+python-multipart = "^0.0.6"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
