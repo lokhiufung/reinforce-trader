@@ -6,38 +6,37 @@ import dash_bootstrap_components as dbc
 from dash import Input, Output
 import plotly.graph_objects as go
 
-from dash_app.services.api_server_service import get_trades
-from dash_app.services.yf_service import get_historical_data
+from dash_app.services import api_server_service
+from dash_app.services import yf_service
 
 
 dash.register_page(__name__, path="/")
 
 
 def layout():
+    tickers = api_server_service.get_tickers()
+    strategies = api_server_service.get_strategies()
+
     layout = html.Div([
         html.H1("Entry and Exit"),
         dcc.Dropdown(
             id='strategy-dropdown',
-            options=[
-                {'label': 'Strategy A', 'value': 'A'},
-                {'label': 'Strategy B', 'value': 'B'},
-                # Add more strategies here
-            ],
-            value='A',  # Default value
+            options=[{'label': strategy, 'value': strategy} for strategy in strategies],
+            value=strategies[0],  # Default value
             multi=False
         ),
         dcc.Dropdown(
             id='ticker-dropdown',
-            options=[
-                {'label': 'TSLA', 'value': 'TSLA'},
-                {'label': 'GOOGL', 'value': 'GOOGL'},
-                {'label': 'AAPL', 'value': 'AAPL'},
-                # Add more strategies here
-            ],
-            value='GOOGL',  # Default value
+            options=[{'label': ticker, 'value': ticker} for ticker in tickers],
+            value=tickers[0],  # Default value
             multi=False
         ),
         dcc.Graph(id='trade-journal-graph'),
+        dcc.Interval(
+            id='interval-component',
+            interval=30*1000, # in miliseconds,
+            n_intervals=0
+        )
     ])
     return layout
 
@@ -48,7 +47,7 @@ def layout():
     [Input('strategy-dropdown', 'value'), Input('ticker-dropdown', 'value')]
 )
 def update_graph(selected_strategy, selected_ticker):
-    trades_df = get_trades(selected_strategy, selected_ticker)
+    trades_df = api_server_service.get_trades(selected_strategy, selected_ticker)
     
     if trades_df.empty:
         return go.Figure()
@@ -68,7 +67,7 @@ def update_graph(selected_strategy, selected_ticker):
     # Fetch stock data using yfinance
     ticker = trades_df['ticker'].iloc[0]
     
-    stock_data = get_historical_data(ticker, start=min_date, end=max_date)
+    stock_data = yf_service.get_historical_data(ticker, start=min_date, end=max_date)
 
     # Create a candlestick chart
     fig = go.Figure(data=[go.Candlestick(x=stock_data.index,
@@ -86,3 +85,16 @@ def update_graph(selected_strategy, selected_ticker):
 
     return fig
 
+
+@dash.callback(
+    [Output('strategy-dropdown', 'options'), Output('ticker-dropdown', 'options')],
+    [Input('interval-component', 'n_intervals')]
+)
+def update_options(n):
+    tickers = api_server_service.get_tickers()
+    strategies = api_server_service.get_strategies()
+    
+    ticker_options = [{'label': ticker, 'value': ticker} for ticker in tickers]
+    strategy_options = [{'label': strategy, 'value': strategy} for strategy in strategies]
+    
+    return strategy_options, ticker_options

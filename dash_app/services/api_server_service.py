@@ -11,6 +11,18 @@ API_SERVER_PORT = os.getenv('API_SERVER_PORT', '8000')
 API_SERVER_URL = f'http://{API_SERVER_HOST}:{API_SERVER_PORT}'
 
 
+def get_tickers():
+    response = requests.get(f'{API_SERVER_URL}/tickers')
+    tickers = response.json()
+    return tickers
+
+
+def get_strategies():
+    response = requests.get(f'{API_SERVER_URL}/strategies')
+    strategies = response.json()
+    return strategies
+
+
 # Fetch trade data from FastAPI backend based on selected strategy
 def get_trades(strat, ticker):
     response = requests.get(f'{API_SERVER_URL}/trades?strategy={strat}&ticker={ticker}')
@@ -18,6 +30,7 @@ def get_trades(strat, ticker):
         return pd.DataFrame(response.json())
     else:
         return pd.DataFrame()
+
 
 def create_trade(strategy, ticker, price, trade_date, trade_side, trade_size, trade_notes, image):
     data = {
@@ -28,7 +41,6 @@ def create_trade(strategy, ticker, price, trade_date, trade_side, trade_size, tr
         'tradeSide': trade_side,
         'tradeSize': trade_size,
         'tradeNotes': trade_notes,
-        # 'image': image,
     }
 
     image_data = None
