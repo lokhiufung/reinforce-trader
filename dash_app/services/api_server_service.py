@@ -6,8 +6,8 @@ import requests
 import pandas as pd
 
 
-API_SERVER_HOST = os.getenv('API_SERVER_HOST')
-API_SERVER_PORT = os.getenv('API_SERVER_PORT')
+API_SERVER_HOST = os.getenv('API_SERVER_HOST', 'localhost')
+API_SERVER_PORT = os.getenv('API_SERVER_PORT', '8000')
 API_SERVER_URL = f'http://{API_SERVER_HOST}:{API_SERVER_PORT}'
 
 

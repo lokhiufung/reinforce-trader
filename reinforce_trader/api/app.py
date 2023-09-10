@@ -12,11 +12,6 @@ main_logger = get_logger('main')
 def create_app():
     
     app = FastAPI()
-
-    # add routers
-    from reinforce_trader.api.trades.router import trades_router
-    
-    app.include_router(trades_router)
     
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -53,6 +48,15 @@ def create_app():
             "status": "ok"
         }
     
+        # add routers
+    from reinforce_trader.api.trades.router import trades_router
+    from reinforce_trader.api.tickers.router import tickers_router
+    from reinforce_trader.api.strategies.router import strategies_router
+    
+    app.include_router(trades_router)
+    app.include_router(tickers_router)
+    app.include_router(strategies_router)
+
     # app.add_middleware(RouterLoggingMiddleware, logger=main_logger)
 
     return app

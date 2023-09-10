@@ -27,6 +27,7 @@ def layout():
             options=[
                 {'label': 'TSLA', 'value': 'TSLA'},
                 {'label': 'GOOGL', 'value': 'GOOGL'},
+                {'label': 'AAPL', 'value': 'AAPL'},
                 # Add more strategies here
             ],
             value='GOOGL',  # Default value
@@ -44,7 +45,7 @@ def layout():
     [Input('strategy-dropdown-pattern', 'value'), Input('ticker-dropdown-pattern', 'value'), Input('trade-table', 'selected_rows')]
 )
 def update_trade_table(selected_strategy, selected_ticker, selected_rows):
-    selected_row = selected_rows[0]
+    selected_row = selected_rows[0] if selected_rows else 0
     trades_df = get_trades(selected_strategy, selected_ticker)
     if trades_df.empty:
         return None, [], [], None

@@ -1,30 +1,17 @@
-import os
 import base64
 from datetime import datetime
 from bson import ObjectId
 from bson.binary import Binary
 
 from typing import List
-from fastapi import APIRouter, HTTPException, Request, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, Request, UploadFile, File, Form, Depends
 from pymongo import MongoClient
 
 from reinforce_trader.api.trades.models.trade import Trade
+from reinforce_trader.api.mongodb.dependencies import get_db_client
+from reinforce_trader.api import config
 from reinforce_trader.api.constants import * 
 
-
-DB_HOST = os.getenv("DB_HOST")
-DB_PORT = os.getenv("DB_PORT")
-DB_USERNAME = os.getenv("DB_USERNAME")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
-DB_NAME = os.getenv("DB_NAME")
-
-print(DB_HOST)
-print(DB_USERNAME)
-
-# Connect to MongoDB
-client = MongoClient(f"mongodb://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/")  # Update the connection string accordingly
-db = client[DB_NAME]
-trades_collection = db["trades"]
 
 # Create the APIRouter instance
 trades_router = APIRouter(
@@ -43,8 +30,12 @@ async def create_trade(
     tradeSize: float = Form(description="the execution size of this trade"),
     tradeSide: int = Form(description="the direction of this trade (long / short)"),
     tradeNotes: str = Form(None, description="the notes for this trade (can be anything)"),
-    image: UploadFile = File(None, description="the chart pattern indicating the snapshot / the reason of making this trade")
+    image: UploadFile = File(None, description="the chart pattern indicating the snapshot / the reason of making this trade"),
+    db_client: MongoClient = Depends(get_db_client)
 ):
+    db = db_client[config.DB_NAME]
+    trades_collection = db["trades"]
+
     trade_dict = Trade(
         strategy=strategy,
         ticker=ticker,
@@ -71,7 +62,11 @@ async def create_trade(
 
 
 @trades_router.get("/", response_model=List[Trade])
-async def get_trades(request: Request, strategy: str = None, ticker: str = None):
+async def get_trades(request: Request, strategy: str = None, ticker: str = None, db_client: MongoClient = Depends(get_db_client)):
+
+    db = db_client[config.DB_NAME]
+    trades_collection = db["trades"]
+
     query = {}
     
     if strategy:
@@ -91,7 +86,11 @@ async def get_trades(request: Request, strategy: str = None, ticker: str = None)
     return trades
 
 @trades_router.get("/{trade_id}", response_model=Trade)
-async def get_trade(trade_id: str):
+async def get_trade(trade_id: str, db_client: MongoClient = Depends(get_db_client)):
+
+    db = db_client[config.DB_NAME]
+    trades_collection = db["trades"]
+
     trade = trades_collection.find_one({"_id": ObjectId(trade_id)})
     if not trade:
         raise HTTPException(status_code=404, detail="Trade not found")
@@ -113,7 +112,11 @@ async def update_trade(
     tradeSize: float = Form(None, description="the execution size of this trade"),
     tradeSide: int = Form(None, description="the direction of this trade (long / short)"),
     tradeNotes: str = Form(None, description="the notes for this trade (can be anything)"),
+    db_client: MongoClient = Depends(get_db_client)
 ):
+    db = db_client[config.DB_NAME]
+    trades_collection = db["trades"]
+
     existing_trade = trades_collection.find_one({"_id": ObjectId(trade_id)})
     if not existing_trade:
         raise HTTPException(status_code=404, detail="Trade not found")
@@ -142,7 +145,10 @@ async def update_trade(
 
 
 @trades_router.delete("/{trade_id}", response_model=None, status_code=204)
-async def delete_trade(trade_id: str):
+async def delete_trade(trade_id: str, db_client: MongoClient = Depends(get_db_client)):
+    db = db_client[config.DB_NAME]
+    trades_collection = db["trades"]
+
     deleted_trade = trades_collection.find_one_and_delete({"_id": ObjectId(trade_id)})
     if not deleted_trade:
         raise HTTPException(status_code=404, detail="Trade not found")

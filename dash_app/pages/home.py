@@ -31,6 +31,7 @@ def layout():
             options=[
                 {'label': 'TSLA', 'value': 'TSLA'},
                 {'label': 'GOOGL', 'value': 'GOOGL'},
+                {'label': 'AAPL', 'value': 'AAPL'},
                 # Add more strategies here
             ],
             value='GOOGL',  # Default value
