@@ -8,6 +8,7 @@
 
 ## How to start
 **!! The "docker compose up -d --build" doesn't work now. All endpoints are not available (404 Not Found) if you use a container to run the server**
+
 Remember to prepare a .env file (check the .env.sample) before starting the servers
 
 ### 1. Setup a MongoDB via docker
