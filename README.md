@@ -24,18 +24,18 @@ You can start adding new trades in your trading journal: [localhost:8050/add-tra
 ### Add a new trade
 You can add a new trade on [localhost:8050/add-trade](http://localhost:8050/add-trade)
 
-![add-trade.png]("add-trade.png")
+![add-trade.png](add-trade.png)
 
 ### View your trades
 You then can view all your trades on [localhost:8050/trades](http://localhost:8050/trades)
 
 Study the chart pattern
 
-![trades-chart-pattern.png]("trades-chart-pattern.png")
+![trades-chart-pattern.png](trades-chart-pattern.png)
 
 View the trade records
 
-![trades-table.png]("trades-table.png")
+![trades-table.png](trades-table.png)
 
 
 ### (Coming soon) View your entry and exit points on the candlestick
