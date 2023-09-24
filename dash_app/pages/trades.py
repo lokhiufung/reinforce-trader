@@ -1,7 +1,10 @@
+import base64
+
+import pandas as pd
 import dash
 import dash_bootstrap_components as dbc
 from dash import html, dcc, dash_table
-from dash import Input, Output
+from dash import Input, Output, State
 
 from dash_app.services import api_server_service
 
@@ -27,8 +30,15 @@ def layout():
             value=tickers[0],  # Default value
             multi=False
         ),
+        html.A(
+            'Download Data as CSV',
+            id='download-link',
+            download='trade_data.csv',
+            href="",
+            target="_blank",
+        ),
         html.Div(id='image-section'),
-        dash_table.DataTable(id='trade-table', row_selectable='single', selected_rows=[0]),
+        dash_table.DataTable(id='trade-table', row_selectable='single', selected_rows=[0], editable=True),
         html.Div(id='trade-data-store', style={'display': 'none'}),  # hidden div to store df
         dcc.Interval(
             id='interval-component',
@@ -76,3 +86,20 @@ def update_options(n):
     strategy_options = [{'label': strategy, 'value': strategy} for strategy in strategies]
     
     return strategy_options, ticker_options
+
+
+@dash.callback(
+    Output('download-link', 'href'),
+    [Input('trade-data-store', 'children')]
+)
+def generate_download_link(trades_df_json):
+    if trades_df_json is None:
+        return ''
+    
+    trades_df = pd.read_json(trades_df_json, orient='split')
+    csv_string = trades_df.to_csv(index=False)
+    csv_string_base64 = base64.b64encode(csv_string.encode()).decode()
+    
+    return f'data:text/csv;base64,{csv_string_base64}'
+
+

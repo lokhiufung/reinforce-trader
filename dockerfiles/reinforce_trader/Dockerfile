@@ -9,6 +9,7 @@ COPY ./reinforce_trader /app/reinforce_trader
 COPY ./pyproject.toml /app/pyproject.toml
 COPY ./poetry.lock /app/poetry.lock
 COPY ./README.md /app/README.md
+COPY ./run_app.py /app/run_app.py
 
 # Install poetry
 RUN pip3 install poetry
@@ -21,4 +22,4 @@ RUN poetry config virtualenvs.create false && \
 EXPOSE 8000
 
 # Command to run the FastAPI app
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "run_app:app", "--host", "0.0.0.0", "--port", "8000"]

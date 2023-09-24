@@ -58,3 +58,28 @@ def create_trade(strategy, ticker, price, trade_date, trade_side, trade_size, tr
         return 'Trade successfully created!'
     else:
         return f'Failed to create trade. Error: {response.content}'
+
+
+def update_trade(strategy, ticker, price, trade_date, trade_side, trade_size, trade_notes):
+    data = {
+        'strategy': strategy,
+        'ticker': ticker,
+        'price': price,
+        'tradeDate': trade_date,
+        'tradeSide': trade_side,
+        'tradeSize': trade_size,
+        'tradeNotes': trade_notes,
+    }
+
+    response = requests.post(f'{API_SERVER_URL}/trades', data=data)
+    # Do something with the response
+    if response.status_code == 201:
+        return 'Trade successfully updated!'
+    else:
+        return f'Failed to update trade. Error: {response.content}'
+    
+
+def get_historical_data(ticker, start, end):
+    response = requests.get(f'{API_SERVER_URL}/historical-data', params={'ticker': ticker, 'start': start, 'end': end})
+    df = pd.DataFrame(response.json())
+    return df

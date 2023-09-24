@@ -15,7 +15,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile  # Specify the path to your Dockerfile
+      dockerfile: ./dockerfiles/reinforce_trader/Dockerfile  # Specify the path to your Dockerfile
     ports:
       - "8000:8000"  # Map the container's port to the host machine's port
     env_file:

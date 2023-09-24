@@ -52,10 +52,12 @@ def create_app():
     from reinforce_trader.api.trades.router import trades_router
     from reinforce_trader.api.tickers.router import tickers_router
     from reinforce_trader.api.strategies.router import strategies_router
+    from reinforce_trader.api.historical_data.router import historical_data_router
     
     app.include_router(trades_router)
     app.include_router(tickers_router)
     app.include_router(strategies_router)
+    app.include_router(historical_data_router)
 
     # app.add_middleware(RouterLoggingMiddleware, logger=main_logger)
 

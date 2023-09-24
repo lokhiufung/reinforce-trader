@@ -157,3 +157,4 @@ async def delete_trade(trade_id: str, db_client: MongoClient = Depends(get_db_cl
     return {
         "_id": deleted_trade["_id"]
     }
+

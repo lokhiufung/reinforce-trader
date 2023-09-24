@@ -2,12 +2,10 @@ from datetime import datetime, timedelta
 
 import dash
 from dash import html, dcc
-import dash_bootstrap_components as dbc
 from dash import Input, Output
 import plotly.graph_objects as go
 
 from dash_app.services import api_server_service
-from dash_app.services import yf_service
 
 
 dash.register_page(__name__, path="/")
@@ -59,15 +57,17 @@ def update_graph(selected_strategy, selected_ticker):
     # Convert to datetime and expand the date range by about a month (30 days)
     min_date_dt = datetime.strptime(min_date, '%Y-%m-%d') - timedelta(days=1*30)
     max_date_dt = datetime.strptime(max_date, '%Y-%m-%d') + timedelta(days=1*30)
+    now_date_dt = datetime.strptime(max_date, '%Y-%m-%d')
 
     # Convert back to string format
     min_date = min_date_dt.strftime('%Y-%m-%d')
-    max_date = max_date_dt.strftime('%Y-%m-%d')
+    max_date = max_date_dt.strftime('%Y-%m-%d') if now_date_dt > max_date_dt else now_date_dt.strftime('%Y-%m-%d')
 
     # Fetch stock data using yfinance
     ticker = trades_df['ticker'].iloc[0]
     
-    stock_data = yf_service.get_historical_data(ticker, start=min_date, end=max_date)
+    stock_data = api_server_service.get_historical_data(ticker, start=min_date, end=max_date)
+    print(stock_data)
 
     # Create a candlestick chart
     fig = go.Figure(data=[go.Candlestick(x=stock_data.index,
