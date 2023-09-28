@@ -96,7 +96,7 @@ def layout():
         Input('upload-image', 'contents'),
     ]
 )
-def submit_form(n_clicks, strategy, ticker, price, trade_date, trade_side, trade_size, trade_notes, uploaded_image):
+def submit_form(n_clicks, strategy, ticker, price, trade_date, trade_size, trade_side, trade_notes, uploaded_image):
     if n_clicks is None:
         return None  # Button has not been clicked
     
@@ -106,12 +106,12 @@ def submit_form(n_clicks, strategy, ticker, price, trade_date, trade_side, trade
 
     # Prepare your form data
     form_data = {
-        'strategy': str(strategy),
-        'ticker': str(ticker),
-        'price': float(price),
+        'strategy': str(strategy.strip().lower()),
+        'ticker': str(ticker.strip().upper()),
+        'price': float(price.strip()),
         'trade_date': trade_date,
-        'trade_side': int(trade_side),
-        'trade_size': float(trade_size),
+        'trade_side': int(trade_side.strip()),
+        'trade_size': float(trade_size.strip()),
         'trade_notes': str(trade_notes),
         'image': uploaded_image.split(',')[1] if uploaded_image else None  # Assuming the image is base64 encoded and prepended with MIME type
     }

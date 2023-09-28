@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 from reinforce_trader.api.logger import get_logger
 
@@ -12,7 +13,18 @@ main_logger = get_logger('main')
 def create_app():
     
     app = FastAPI()
-    
+    origins = [
+        "http://localhost:3000",  # Allow your frontend origin
+        # "https://yourfrontenddomain.com",  # You can also add production frontend origins
+    ]
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,  # List of origins allowed (you can use ["*"] for all origins)
+        allow_credentials=True,
+        allow_methods=["*"],  # Allow all methods, or specify ["GET", "POST"]
+        allow_headers=["*"],
+    )
+
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(request: Request, exc: RequestValidationError):
         error_logger.error(f'Validation Error: {request.method} | {request.url} | {exc.body}')
