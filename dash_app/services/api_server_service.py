@@ -5,43 +5,49 @@ import io
 import requests
 import pandas as pd
 
-
+# for account
+USER_ID = '123'
+STRATEGY = 'test'
+# backend
 API_SERVER_HOST = os.getenv('API_SERVER_HOST', 'localhost')
 API_SERVER_PORT = os.getenv('API_SERVER_PORT', '8000')
 API_SERVER_URL = f'http://{API_SERVER_HOST}:{API_SERVER_PORT}'
 
 
 def get_tickers():
-    response = requests.get(f'{API_SERVER_URL}/tickers')
+    response = requests.get(f'{API_SERVER_URL}/users/{USER_ID}/tickers')
     tickers = response.json()
     return tickers
 
 
 def get_strategies():
-    response = requests.get(f'{API_SERVER_URL}/strategies')
+    response = requests.get(f'{API_SERVER_URL}/users/{USER_ID}/strategies')
     strategies = response.json()
     return strategies
 
 
 # Fetch trade data from FastAPI backend based on selected strategy
 def get_trades(strat, ticker):
-    response = requests.get(f'{API_SERVER_URL}/trades?strategy={strat}&ticker={ticker}')
+    response = requests.get(f'{API_SERVER_URL}/users/{USER_ID}/trades?strategy={strat}&ticker={ticker}')
     if response.status_code == 200:
         return pd.DataFrame(response.json())
     else:
         return pd.DataFrame()
 
 
-def create_trade(strategy, ticker, price, trade_date, trade_side, trade_size, trade_notes, image):
+def create_trade(strategy, ticker, price, date, side, size, notes, image):
     data = {
         'strategy': strategy,
         'ticker': ticker,
         'price': price,
-        'tradeDate': trade_date,
-        'tradeSide': trade_side,
-        'tradeSize': trade_size,
-        'tradeNotes': trade_notes,
+        'date': date,
+        'side': side,
+        'size': size,
+        'notes': notes,
     }
+
+    data['userId'] = '123'  # TODO: only support a single account for local dash app
+    data['strategy'] = STRATEGY  # TODO: only support a single strategy for local dash app
 
     image_data = None
     if image:
@@ -52,7 +58,7 @@ def create_trade(strategy, ticker, price, trade_date, trade_side, trade_size, tr
 
     files = {'image': image_file} if image_file else None
 
-    response = requests.post(f'{API_SERVER_URL}/trades', data=data, files=files)
+    response = requests.post(f'{API_SERVER_URL}/users/{USER_ID}/trades', data=data, files=files)
     # Do something with the response
     if response.status_code == 201:
         return 'Trade successfully created!'
@@ -60,18 +66,18 @@ def create_trade(strategy, ticker, price, trade_date, trade_side, trade_size, tr
         return f'Failed to create trade. Error: {response.content}'
 
 
-def update_trade(strategy, ticker, price, trade_date, trade_side, trade_size, trade_notes):
+def update_trade(strategy, ticker, price, date, side, size, notes):
     data = {
-        'strategy': strategy,
+        # 'strategy': strategy,
         'ticker': ticker,
         'price': price,
-        'tradeDate': trade_date,
-        'tradeSide': trade_side,
-        'tradeSize': trade_size,
-        'tradeNotes': trade_notes,
+        'date': date,
+        'side': side,
+        'size': size,
+        'notes': notes,
     }
 
-    response = requests.post(f'{API_SERVER_URL}/trades', data=data)
+    response = requests.post(f'{API_SERVER_URL}/users/{USER_ID}/trades', data=data)
     # Do something with the response
     if response.status_code == 201:
         return 'Trade successfully updated!'

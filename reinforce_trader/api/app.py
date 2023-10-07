@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from reinforce_trader.api.logger import get_logger
+from reinforce_trader.api import config
 
 
 error_logger = get_logger('error')
@@ -14,7 +15,7 @@ def create_app():
     
     app = FastAPI()
     origins = [
-        "http://localhost:3000",  # Allow your frontend origin
+        config.FRONTEND_URL,  # Allow your frontend origin
         # "https://yourfrontenddomain.com",  # You can also add production frontend origins
     ]
     app.add_middleware(
@@ -27,6 +28,9 @@ def create_app():
 
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(request: Request, exc: RequestValidationError):
+        body = await request.body()
+        print(body)
+        print(request.headers)
         error_logger.error(f'Validation Error: {request.method} | {request.url} | {exc.body}')
         return JSONResponse(
             status_code=422,
@@ -49,7 +53,7 @@ def create_app():
     async def http_exception_handler(request: Request, exc: HTTPException):
         error_logger.error(f'Http Error: {request.method} | {request.url} | {exc.detail}')
         return JSONResponse(
-            status_code=500,
+            status_code=exc.status_code,
             content={"error": exc.detail},
         )
 

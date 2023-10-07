@@ -7,7 +7,7 @@ from reinforce_trader.api import config
 
 # Create the APIRouter instance
 tickers_router = APIRouter(
-    prefix='/tickers',
+    prefix='/users/{user_id}/tickers',
     tags=['tickers'],
 )
 
