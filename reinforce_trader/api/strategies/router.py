@@ -1,22 +1,131 @@
-from fastapi import APIRouter, Depends, Request
+from typing import Annotated
+from bson import ObjectId
+
+from fastapi import APIRouter, Depends, Request, HTTPException, Body
 from pymongo import MongoClient
 
+# from reinforce_trader.api.strategies.models.strategy import Strategy
 from reinforce_trader.api.mongodb.dependencies import get_db_client
 from reinforce_trader.api import config
 
 
 # Create the APIRouter instance
 strategies_router = APIRouter(
-    prefix='/strategies',
+    prefix='/users/{user_id}/strategies',
     tags=['strategies'],
 )
 
-@strategies_router.get('/', status_code=200)
-def get_strategies(db_client: MongoClient = Depends(get_db_client)):
+
+@strategies_router.post('/', status_code=201)
+async def create_strategy(
+    user_id,
+    name: Annotated[str, Body()],
+    initialCash: Annotated[float, Body()],
+    db_client: MongoClient = Depends(get_db_client)
+):  
+    # Get the database and collection
     db = db_client[config.DB_NAME]
-    trades_collection = db["trades"]
-    strategies = trades_collection.distinct('strategy')
+    strategies_collection = db["strategies"]
+    # Check if strategy name already exists
+    if strategies_collection.find_one({"name": name, "userId": user_id}):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Strategy with this name already exists with userId={user_id}",
+        )
+    
+    # Insert the new strategy into the database
+    strategy_dict = dict(name=name, initialCash=initialCash, cash=initialCash)
+    # add userId and initialCash to the strategy_dict
+    strategy_dict['userId'] = user_id
+
+    inserted_strategy = strategies_collection.insert_one(strategy_dict)
+    strategy_dict['_id'] = str(inserted_strategy.inserted_id)
+    return {
+        "_id": strategy_dict['_id'],
+    }
+
+
+@strategies_router.get('/', status_code=200)
+def get_strategies(user_id, db_client: MongoClient = Depends(get_db_client)):
+    db = db_client[config.DB_NAME]
+    strategies_collection = db["strategies"]
+    query = {"userId": user_id}
+    strategies = list(strategies_collection.find(query))
+    for strategy in strategies:
+        strategy['_id'] = str(strategy['_id'])
     return strategies
+
+
+@strategies_router.get("/{strategy_id}")
+async def get_strategy(user_id: str, strategy_id: str, db_client: MongoClient = Depends(get_db_client)):
+
+    db = db_client[config.DB_NAME]
+    strategies_collection = db["strategies"]
+
+    strategy = strategies_collection.find_one({"_id": ObjectId(strategy_id), "userId": user_id})
+    if not strategy:
+        raise HTTPException(status_code=404, detail="Strategy not found")
+    strategy['_id'] = str(strategy['_id'])
+    return strategy
+
+
+@strategies_router.put('/{strategy_id}', status_code=200)
+async def update_strategy(
+        user_id: str,
+        strategy_id: str, 
+        name: Annotated[str, Body()],
+        initial_cash: Annotated[float, Body()],
+        # cash: Annotated[float, Body()],
+        db_client: MongoClient = Depends(get_db_client)
+    ):
+    db = db_client[config.DB_NAME]
+    strategies_collection = db["strategies"]
+    
+    # Check if strategy name already exists
+    if not strategies_collection.find_one({"_id": ObjectId(strategy_id), 'userId': user_id}):
+        raise HTTPException(
+            status_code=404,
+            detail=f"Strategy with this name does not exist with userId={user_id}",
+        )
+    
+    # Create an update object with only the provided fields
+    update_data = {}
+
+    if name is not None:
+        update_data["name"] = name
+
+    if initial_cash is not None:
+        update_data["initialCash"] = initial_cash
+
+    # if cash is not None:
+    #     update_data["cash"] = cash
+    
+    # Update the strategy
+    strategies_collection.update_one({"_id": ObjectId(strategy_id), "userId": user_id}, {"$set": update_data})
+    return {
+        '_id': strategy_id,
+    }
+
+
+@strategies_router.delete('/{strategy_id}', status_code=200)
+async def delete_strategy(
+        user_id: str,
+        strategy_id: str,
+        db_client: MongoClient = Depends(get_db_client)
+    ):
+    db = db_client[config.DB_NAME]
+    strategies_collection = db["strategies"]
+    
+    # Delete the strategy
+    deleted_strategy = strategies_collection.find_one_and_delete({"_id": ObjectId(strategy_id), "userId": user_id})
+    
+    if not deleted_strategy:
+        raise HTTPException(status_code=404, detail="Trade not found")
+    deleted_strategy["_id"] = str(deleted_strategy["_id"])  # Convert ObjectId to str
+    return {
+        "_id": deleted_strategy["_id"]
+    }
+
 
 
 # trade analytics
