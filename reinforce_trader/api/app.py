@@ -1,7 +1,11 @@
+import os
+
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+
 
 from reinforce_trader.api.logger import get_logger
 from reinforce_trader.api import config
@@ -75,6 +79,11 @@ def create_app():
     app.include_router(strategies_router)
     app.include_router(historical_data_router)
 
+    allowed_host = os.getenv('ALLOWED_HOST', '*')
     # app.add_middleware(RouterLoggingMiddleware, logger=main_logger)
+    app.add_middleware(
+        TrustedHostMiddleware, allowed_hosts=[allowed_host]
+    )
+
 
     return app
