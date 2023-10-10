@@ -4,7 +4,7 @@ from bson import ObjectId
 from fastapi import APIRouter, Depends, Request, HTTPException, Body
 from pymongo import MongoClient
 
-# from reinforce_trader.api.strategies.models.strategy import Strategy
+from reinforce_trader.api.strategies.models.strategy import Strategy
 from reinforce_trader.api.mongodb.dependencies import get_db_client
 from reinforce_trader.api import config
 
@@ -19,22 +19,21 @@ strategies_router = APIRouter(
 @strategies_router.post('/', status_code=201)
 async def create_strategy(
     user_id,
-    name: Annotated[str, Body()],
-    initialCash: Annotated[float, Body()],
+    strategy: Strategy,
     db_client: MongoClient = Depends(get_db_client)
 ):  
     # Get the database and collection
     db = db_client[config.DB_NAME]
     strategies_collection = db["strategies"]
     # Check if strategy name already exists
-    if strategies_collection.find_one({"name": name, "userId": user_id}):
+    if strategies_collection.find_one({"name": strategy.name, "userId": user_id}):
         raise HTTPException(
             status_code=400,
             detail=f"Strategy with this name already exists with userId={user_id}",
         )
     
     # Insert the new strategy into the database
-    strategy_dict = dict(name=name, initialCash=initialCash, cash=initialCash)
+    strategy_dict = strategy.model_dump()
     # add userId and initialCash to the strategy_dict
     strategy_dict['userId'] = user_id
 

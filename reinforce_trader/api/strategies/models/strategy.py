@@ -16,4 +16,3 @@ from pydantic import BaseModel, Field
 class Strategy(BaseModel):
     name: str
     initicalCash: float
-    cash: float | None = None

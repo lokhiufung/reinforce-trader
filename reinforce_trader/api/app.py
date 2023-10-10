@@ -22,24 +22,22 @@ def create_app():
         config.FRONTEND_URL,  # Allow your frontend origin
         # "https://yourfrontenddomain.com",  # You can also add production frontend origins
     ]
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=origins,  # List of origins allowed (you can use ["*"] for all origins)
-        allow_credentials=True,
-        allow_methods=["*"],  # Allow all methods, or specify ["GET", "POST"]
-        allow_headers=["*"],
-    )
+    # app.add_middleware(
+    #     CORSMiddleware,
+    #     allow_origins=origins,  # List of origins allowed (you can use ["*"] for all origins)
+    #     allow_credentials=True,
+    #     allow_methods=["*"],  # Allow all methods, or specify ["GET", "POST"]
+    #     allow_headers=["*"],
+    # )
 
-    @app.exception_handler(RequestValidationError)
-    async def validation_exception_handler(request: Request, exc: RequestValidationError):
-        body = await request.body()
-        print(body)
-        print(request.headers)
-        error_logger.error(f'Validation Error: {request.method} | {request.url} | {exc.body}')
-        return JSONResponse(
-            status_code=422,
-            content={"error": "Missing required field", "body": exc.body},
-        )
+    # @app.exception_handler(RequestValidationError)
+    # async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    #     body = await request.body()
+    #     error_logger.error(f'Validation Error: {request.method} | {request.url} | {exc.body}')
+    #     return JSONResponse(
+    #         status_code=422,
+    #         content={"error": "Missing required field", "body": exc.body},
+    #     )
     
     # catch all unexpected error
     @app.exception_handler(Exception)
