@@ -36,6 +36,8 @@ async def create_strategy(
     strategy_dict = strategy.model_dump()
     # add userId and initialCash to the strategy_dict
     strategy_dict['userId'] = user_id
+    # set cash as initial cash
+    strategy_dict['cash'] = strategy.initialCash
 
     inserted_strategy = strategies_collection.insert_one(strategy_dict)
     strategy_dict['_id'] = str(inserted_strategy.inserted_id)

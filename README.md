@@ -5,19 +5,23 @@
 `reinforce-trader` emphasizes the use of technical pattarns when traders make trading decisions. Traders often use technical patterns to find entry points and exit points. e.g Drawing lines of resistance levels and supporting levels, Drawing a triangle pattern, ...etc. Therefore, `reinforce-traders` allows you to upload an image to capture the moment of trade. I personally use [TradingView](https://www.tradingview.com/) to draw lines and you can easily download the chart image using Tradingview's "Take a Snapshot" function.
 
 
+## OS
+Currently the application was only tested on MacOS.
+
+
 ## How to start
-# 1. Make a copy of .env.sample and rename it as .env
+### 1. Make a copy of .env.sample and rename it as .env
 ```bash
 cp .env.sample .env
 ```
 
-# 2. Start with docker
+### 2. Start with docker
 ```bash
 # `docker compose up -d --build` if you want to rebuild it
 docker compose up -d
 ```
 
-# 3. Open the app
+### 3. Open the app
 You can start adding new trades in your trading journal: [localhost:8050/add-trade](http://localhost:8050/add-trade)
 
 ## How to use
