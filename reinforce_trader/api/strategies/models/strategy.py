@@ -16,3 +16,6 @@ from pydantic import BaseModel, Field
 class Strategy(BaseModel):
     name: str
     initialCash: float
+    stopLoss: float
+    takeProfit: float
+    prob: float = 0.3  # probability of winning
