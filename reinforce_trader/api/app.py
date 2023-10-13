@@ -30,15 +30,6 @@ def create_app():
     #     allow_headers=["*"],
     # )
 
-    # @app.exception_handler(RequestValidationError)
-    # async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    #     body = await request.body()
-    #     error_logger.error(f'Validation Error: {request.method} | {request.url} | {exc.body}')
-    #     return JSONResponse(
-    #         status_code=422,
-    #         content={"error": "Missing required field", "body": exc.body},
-    #     )
-    
     # catch all unexpected error
     @app.exception_handler(Exception)
     async def unexpected_exception_handler(request: Request, exc: Exception):
@@ -77,11 +68,10 @@ def create_app():
     app.include_router(strategies_router)
     app.include_router(historical_data_router)
 
-    allowed_host = os.getenv('ALLOWED_HOST', '*')
+    allowed_host = os.getenv('ALLOWED_HOST')
     # app.add_middleware(RouterLoggingMiddleware, logger=main_logger)
     app.add_middleware(
         TrustedHostMiddleware, allowed_hosts=[allowed_host]
     )
-
 
     return app
