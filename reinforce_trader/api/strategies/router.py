@@ -4,7 +4,7 @@ from bson import ObjectId
 from fastapi import APIRouter, Depends, Request, Body
 from pymongo import MongoClient
 
-from reinforce_trader.api.strategies.models.strategy import Strategy
+from reinforce_trader.api.strategies.models.strategy import Strategy, StrategyUpdate
 from reinforce_trader.api.mongodb.dependencies import get_db_client
 from reinforce_trader.api.strategies import service as strategies_service
 from reinforce_trader.api import config
@@ -40,11 +40,10 @@ async def get_strategy(user_id: str, strategy_id: str, db_client: MongoClient = 
 async def update_strategy(
         user_id: str,
         strategy_id: str, 
-        name: Annotated[str, Body()],
-        initial_cash: Annotated[float, Body()],
+        strategy: StrategyUpdate,
         db_client: MongoClient = Depends(get_db_client)
     ):
-    return strategies_service.update_strategy(user_id, strategy_id, name, initial_cash, db_client)
+    return strategies_service.update_strategy(user_id, strategy_id, strategy, db_client)
 
 
 @strategies_router.delete('/{strategy_id}', status_code=200)

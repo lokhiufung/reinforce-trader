@@ -59,13 +59,11 @@ def get_strategy(user_id: str, strategy_id: str, db_client):
 def update_strategy(
         user_id: str,
         strategy_id: str, 
-        name,
-        initial_cash,
+        strategy,
         db_client,
     ):
     db = db_client[config.DB_NAME]
     strategies_collection = db["strategies"]
-    
     # Check if strategy name already exists
     if not strategies_collection.find_one({"_id": ObjectId(strategy_id), 'userId': user_id}):
         raise HTTPException(
@@ -76,11 +74,11 @@ def update_strategy(
     # Create an update object with only the provided fields
     update_data = {}
 
-    if name is not None:
-        update_data["name"] = name
+    if strategy.name is not None:
+        update_data["name"] = strategy.name
 
-    if initial_cash is not None:
-        update_data["initialCash"] = initial_cash
+    if strategy.initialCash is not None:
+        update_data["initialCash"] = strategy.initialCash
 
     # if cash is not None:
     #     update_data["cash"] = cash
