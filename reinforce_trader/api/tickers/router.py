@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from pymongo import MongoClient
 
 from reinforce_trader.api.mongodb.dependencies import get_db_client
@@ -12,9 +12,10 @@ tickers_router = APIRouter(
 )
 
 @tickers_router.get('/', status_code=200)
-def get_tickers(db_client: MongoClient = Depends(get_db_client)):
+def get_tickers(request: Request, user_id: str, strategy: str, db_client: MongoClient = Depends(get_db_client)):
+    # e.g /users/user_id/tickers/?strategy=strategy_name
     db = db_client[config.DB_NAME]
     trades_collection = db["trades"]
-    tickers = trades_collection.distinct('ticker')
+    tickers = trades_collection.distinct('ticker', {'userId': user_id, 'strategy': strategy})  # use strategy name for query at this moment
     return tickers
 
