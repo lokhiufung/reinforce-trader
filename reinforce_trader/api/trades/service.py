@@ -39,12 +39,13 @@ def create_trades(
 
     # check if it is a winning / losing / even trade
     latest_trade = mongodb_utils.get_latest_trade(trades_collection, user_id, trade.ticker, trade.strategy)
-    if trade.price - latest_trade['price'] > 0:
-        trade_dict['label'] = 'win'
-    elif trade.price - latest_trade['price'] < 0:
-        trade_dict['label'] = 'loss'
-    else:
-        trade_dict['label'] = 'even'
+    if latest_trade:
+        if trade.price - latest_trade['price'] > 0:
+            trade_dict['label'] = 'win'
+        elif trade.price - latest_trade['price'] < 0:
+            trade_dict['label'] = 'loss'
+        else:
+            trade_dict['label'] = 'even'
 
     inserted_trade = trades_collection.insert_one(trade_dict)
     trade_dict['_id'] = str(inserted_trade.inserted_id)
@@ -122,12 +123,11 @@ def delete_trade(user_id, trade_id, db_client):
     db = db_client[config.DB_NAME]
     trades_collection = db["trades"]
 
-    deleted_trade = trades_collection.find_one_and_delete({"_id": ObjectId(trade_id), "user_id": user_id})
+    deleted_trade = trades_collection.find_one_and_delete({"_id": ObjectId(trade_id), "userId": user_id})
     if not deleted_trade:
         raise HTTPException(status_code=404, detail="Trade not found")
     deleted_trade["_id"] = str(deleted_trade["_id"])  # Convert ObjectId to str
     # deleted_trade['tradeDate'] = datetime.strftime(deleted_trade['tradeDate'], DATE_FORMAT)
     return {
         "_id": deleted_trade["_id"]
-
     }

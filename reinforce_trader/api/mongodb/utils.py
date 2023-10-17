@@ -25,7 +25,7 @@ def get_latest_trade(db, user_id, ticker, strategy):
         }
     ]
 
-    trades = trades_collection.aggregate(pipeline)
+    trades = list(trades_collection.aggregate(pipeline))
     return trades[0] if trades else None  # Return None if no trades found
 
 
