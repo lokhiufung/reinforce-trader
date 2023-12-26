@@ -41,6 +41,9 @@ View the trade records
 
 ![trades-table.png](trades-table.png)
 
+### (Coming soon) View your entry and exit points on the candlestick
+
+
 # Roadmap
 - Gather publicly available data as much as possible -> Datalake
 - Extract information and knowledge from the publicly available data as much as possible -> research
@@ -73,11 +76,14 @@ dl_cleint.download_all()  # download all historical data of tickers from the tem
 python classifier_v1.py
 ```
 
+# TODO
+- need sanity checking for the feature pipeline, e.g need to know the distribution of the labels in case of inbalanced target.
+- need to analyse the feature (input, output, input vs output) to understand the effect of the featurizer.
 
-## Research
-### References
+
+# References
 1. https://medium.com/@masteringllm/mastering-react-prompting-a-crucial-step-in-langchain-implementation-a-guided-example-for-agents-efdf1b756105
 2. suggestions on fastapi application: https://www.youtube.com/watch?v=HTSK6eRwyGM
 
-### (Coming soon) View your entry and exit points on the candlestick
+
 
