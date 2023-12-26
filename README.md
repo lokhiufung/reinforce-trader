@@ -41,6 +41,23 @@ View the trade records
 
 ![trades-table.png](trades-table.png)
 
+# Roadmap
+
+- Simulated trading environment
+- Positive results (e.g Maximum drawdown, Return over Risk) on historical FX data
+
+
+# Backtesting system
+- vectorize backtesting system
+
+# Data
+- raw_data -> pipeline 1, pipeline 2, .... -> data_model_1, data_model_2, ...
+
+
+## Research
+### References
+1. https://medium.com/@masteringllm/mastering-react-prompting-a-crucial-step-in-langchain-implementation-a-guided-example-for-agents-efdf1b756105
+2. suggestions on fastapi application: https://www.youtube.com/watch?v=HTSK6eRwyGM
 
 ### (Coming soon) View your entry and exit points on the candlestick
 
