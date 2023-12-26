@@ -42,16 +42,36 @@ View the trade records
 ![trades-table.png](trades-table.png)
 
 # Roadmap
+- Gather publicly available data as much as possible -> Datalake
+- Extract information and knowledge from the publicly available data as much as possible -> research
+- Build trading strategies using the information and knowledge from data -> trading system
 
-- Simulated trading environment
-- Positive results (e.g Maximum drawdown, Return over Risk) on historical FX data
 
+# Research pipeline
+A flexible and modularized pipeline to build machine learning models for financial data
 
-# Backtesting system
-- vectorize backtesting system
+1. prepare the datalake template
+```bash
+python generate_datalake_template.py
+```
 
-# Data
-- raw_data -> pipeline 1, pipeline 2, .... -> data_model_1, data_model_2, ...
+2. download historical market data
+```python
+import os
+
+from reinforce_trader.research.datalake_client import DatalakeClient
+
+datalake_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
+template_file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'datalake_template.yaml'))
+dl_client = DatalakeClient(datalake_dir, template_file_path)
+
+dl_cleint.download_all()  # download all historical data of tickers from the template
+```
+
+3. run the classifier_v1 pipeline
+```bash
+python classifier_v1.py
+```
 
 
 ## Research
