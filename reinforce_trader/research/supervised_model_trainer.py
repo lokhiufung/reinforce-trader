@@ -14,6 +14,7 @@ class SupervisedModelTrainer(ABC):
         self.feature_pipeline = feature_pipeline
         self.label_pipeline = label_pipeline
         self.datasets = {}
+        self.analysises = {}
 
     def get_data(self, key):
         if key not in self.datasets:
@@ -35,6 +36,7 @@ class SupervisedModelTrainer(ABC):
             report['train'] = self._test_step(model, x_train, y_train)
             report['test'] = self._test_step(model, x_test, y_test)
             # evaluation_report
+        report['pipeline_analysises'] = self.analysises
         return model, report
 
     # def test(self, report=True):

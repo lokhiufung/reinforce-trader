@@ -39,11 +39,16 @@ class RandomForesModelTrainer(SupervisedModelTrainer):
             # split sequences into feature and target
             x = dataset_array[:, :self.hparams['feature_window_size'], :]
             y = dataset_array[:, self.hparams['feature_window_size']:, :]
-            x = self.feature_pipeline.run(x)
-            y = self.label_pipeline.run(y)
-
+            x, x_analysises = self.feature_pipeline.run(x)
+            y, y_analysises = self.label_pipeline.run(y)
+            
             datasets[dataset_name]['feature'] = x
             datasets[dataset_name]['label'] = y
+
+            self.analysises[dataset_name] = {}
+            self.analysises[dataset_name]['feature'] = x_analysises
+            self.analysises[dataset_name]['label'] = y_analysises
+
         return datasets
     
     def _train_step(self, x, y):

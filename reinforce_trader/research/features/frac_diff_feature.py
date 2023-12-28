@@ -1,6 +1,6 @@
 import numpy as np
 
-from reinforce_trader.research.features.feature_block import FeatureBlock
+from reinforce_trader.research.features.feature import Feature
 
 
 def get_weights(d: float, size: int) -> np.ndarray:
@@ -49,10 +49,11 @@ def frac_diff(array: np.ndarray, d: float, threshold=0.01) -> np.ndarray:
     return np.array(diff_series)
 
 
-class FracDiffMultiChannelFeature(FeatureBlock):
-    def __init__(self, d, threshold=0.01):
+class FracDiffMultiChannelFeature(Feature):
+    def __init__(self, d, threshold=0.01, analyzer=None):
         self.d = d
         self.threshold = threshold
+        super().__init__(analyzer=analyzer)
     
     def check_output_shape(self, input_array: np.ndarray, output_array: np.ndarray):
         weights = get_weights(self.d, size=input_array.shape[1])
@@ -63,7 +64,7 @@ class FracDiffMultiChannelFeature(FeatureBlock):
         is_correct = output_array.shape == expected_shape
         return is_correct, expected_shape
             
-    def __call__(self, array: np.ndarray) -> np.ndarray:
+    def _run(self, array: np.ndarray) -> np.ndarray:
         """
         TODO: better do it with broadcasting
         Assume array is a (N, seq, channels) array

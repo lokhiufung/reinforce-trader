@@ -4,8 +4,9 @@ import numpy as np
 
 from reinforce_trader.research.datalake_client import DatalakeClient
 from reinforce_trader.research.feature_pipeline import FeaturePipeline
-from reinforce_trader.research.features import triple_barrier_feature, FracDiffMultiChannelFeature
+from reinforce_trader.research.features import FracDiffMultiChannelFeature, TripleBarrierFeature
 from reinforce_trader.research.models.random_forest_model_trainer import RandomForesModelTrainer
+from reinforce_trader.research.analyzers.dist_analyzer import DistAnalyzer
 
 
 def main():
@@ -33,7 +34,7 @@ def main():
         pipeline=[
             np.log,
             FracDiffMultiChannelFeature,
-            lambda array: array.reshape(array.shape[0], -1)  # flatten the last 2 dimensions (seq * channel)
+            lambda array: array.reshape(array.shape[0], -1),  # flatten the last 2 dimensions (seq * channel)
         ],
         params={
             'FracDiffMultiChannelFeature': {'d': hparams['d'], 'threshold': hparams['threshold']}
@@ -41,11 +42,14 @@ def main():
     )
     label_pipeline = FeaturePipeline(
         pipeline=[
-            triple_barrier_feature,
-            lambda array: array[:, 0]  # use the labels only
+            TripleBarrierFeature,
+            lambda array: array[:, 0],  # use the labels only 
         ],
         params={
-            'triple_barrier_feature': {'r_stop': hparams['r_stop'], 'r_take': hparams['r_take']}
+            'TripleBarrierFeature': {'r_stop': hparams['r_stop'], 'r_take': hparams['r_take']}
+        },
+        analyzers={
+            'TripleBarrierFeature': DistAnalyzer()  # TODO: only Feature can use analyzer
         }
     )
 
