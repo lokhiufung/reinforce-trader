@@ -38,19 +38,17 @@ class SupervisedModelTrainer(ABC):
         data = self.get_data('train')
         x_train, y_train = data['feature'], data['label']
         model = self._train_step(x_train, y_train)
-        report = {}
+        report = {'model_analysises': {}}
         test_data = self.get_data('test')
         x_test, y_test = test_data['feature'], test_data['label']
-        report['train'] = self._test_step(model, x_train, y_train)
-        report['test'] = self._test_step(model, x_test, y_test)
+        report['model_analysises']['train'] = self._test_step(model, x_train, y_train)
+        report['model_analysises']['test'] = self._test_step(model, x_test, y_test)
         # evaluation_report
         report['pipeline_analysises'] = self.analysises
         if to_analyst:
             report['descriptions'] = {
-                'feature_pipelines': {
-                    'feature': self.feature_pipeline.description,
-                    'label': self.label_pipeline.description,
-                },
+                'feature_pipeline': self.feature_pipeline.description,
+                'label_pipeline': self.label_pipeline.description,
                 'model': self.description
             }
         return model, report

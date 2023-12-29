@@ -8,7 +8,7 @@ from reinforce_trader.research.feature_pipeline import FeaturePipeline
 from reinforce_trader.research.features import FracDiffMultiChannelFeature, TripleBarrierFeature
 from reinforce_trader.research.models.random_forest_model_trainer import RandomForesModelTrainer
 from reinforce_trader.research.analyzers import DistAnalyzer, CorrAnalyzer, AutocorrAnalyzer 
-
+from reinforce_trader.research.agents.report_analyst_agent import ReportAnalystAgent
 
 
 
@@ -68,9 +68,19 @@ def main():
     )
 
     model, report = trainer.train(to_analyst=True)
-    # pprint(report)
-    print(report)
+    
+    report_analyst_agent = ReportAnalystAgent.from_llm_config(
+        llm_config={
+            'max_tokens': 6000,
+            'temperature': 0.3,
+            'model': 'gpt-3.5-turbo-16k'
+        }
+    )
+    analyst_report = report_analyst_agent.act(report=report)
 
+    with open('analyst_report.txt', 'w') as f:
+        f.write(analyst_report)
+    
 
 if __name__ == '__main__':
     main()
