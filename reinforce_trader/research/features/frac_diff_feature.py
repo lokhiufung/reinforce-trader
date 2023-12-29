@@ -49,11 +49,30 @@ def frac_diff(array: np.ndarray, d: float, threshold=0.01) -> np.ndarray:
     return np.array(diff_series)
 
 
+DESCRIPTION = """
+This feature produce fractionally differentiated series of the input array for each channel.
+It assumes the input array's dimension to be (number of samples, number of steps, number of channels).
+The output of the feature is a ndarray. Below is an example output:
+####
+[
+    [[100.1, 120.5, 109.4, 104.2], [101.1, 110.5, 109.2, 106.2], ...],
+    [[102.1, 121.5, 100.4, 102.2], [101.1, 110.5, 109.2, 106.2], ...],
+    ...
+]
+####
+The dimension of the output array is (number of samples, number of steps after differentated fractionally, number of channels).
+"""
+
+
 class FracDiffMultiChannelFeature(Feature):
-    def __init__(self, d, threshold=0.01, analyzer=None):
+    def __init__(self, d, threshold=0.01, analyzers=None):
         self.d = d
         self.threshold = threshold
-        super().__init__(analyzer=analyzer)
+        super().__init__(analyzers=analyzers)
+    
+    @property
+    def description(self):
+        return DESCRIPTION
     
     def check_output_shape(self, input_array: np.ndarray, output_array: np.ndarray):
         weights = get_weights(self.d, size=input_array.shape[1])

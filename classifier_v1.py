@@ -1,4 +1,5 @@
 import os
+from pprint import pprint
 
 import numpy as np
 
@@ -6,7 +7,9 @@ from reinforce_trader.research.datalake_client import DatalakeClient
 from reinforce_trader.research.feature_pipeline import FeaturePipeline
 from reinforce_trader.research.features import FracDiffMultiChannelFeature, TripleBarrierFeature
 from reinforce_trader.research.models.random_forest_model_trainer import RandomForesModelTrainer
-from reinforce_trader.research.analyzers.dist_analyzer import DistAnalyzer
+from reinforce_trader.research.analyzers import DistAnalyzer, CorrAnalyzer, AutocorrAnalyzer 
+
+
 
 
 def main():
@@ -38,8 +41,12 @@ def main():
         ],
         params={
             'FracDiffMultiChannelFeature': {'d': hparams['d'], 'threshold': hparams['threshold']}
+        },
+        analyzers={
+            'FracDiffMultiChannelFeature': [CorrAnalyzer()]
         }
     )
+
     label_pipeline = FeaturePipeline(
         pipeline=[
             TripleBarrierFeature,
@@ -49,7 +56,7 @@ def main():
             'TripleBarrierFeature': {'r_stop': hparams['r_stop'], 'r_take': hparams['r_take']}
         },
         analyzers={
-            'TripleBarrierFeature': DistAnalyzer()  # TODO: only Feature can use analyzer
+            'TripleBarrierFeature': [DistAnalyzer()]  # TODO: only Feature can use analyzer
         }
     )
 
@@ -60,8 +67,9 @@ def main():
         label_pipeline=label_pipeline,
     )
 
-    model, report = trainer.train()
-    print(f'{report=}')
+    model, report = trainer.train(to_analyst=True)
+    # pprint(report)
+    print(report)
 
 
 if __name__ == '__main__':

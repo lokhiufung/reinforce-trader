@@ -3,12 +3,35 @@ import numpy as np
 from reinforce_trader.research.features.feature import Feature
 
 
+DESCRIPTION = """
+This feature produce label, and actual_return of the input array.
+It assumes the input array's dimension to be (number of samples, number of steps, number of channels).
+It assumes that channels represent the `open`, `high`, `low` and `close` price of each step.
+The output of the feature is a ndarray. Below is an example output:
+####
+[
+    [-1.0, 1.2],
+    [-1.0, 3.2],
+    [1.0, -0.06],
+    [1.0, -4.7],
+    [0.0, 1.2],
+    ...
+]
+####
+The dimension of the output array is (number of samples, 2), where the last dimension represents the label and actural return
+"""
+
+
 class TripleBarrierFeature(Feature):
-    def __init__(self, r_stop: float, r_take: float, analyzer=None):
+    def __init__(self, r_stop: float, r_take: float, analyzers=None):
         self.r_stop = r_stop
         self.r_take = r_take
-        super().__init__(analyzer=analyzer)
+        super().__init__(analyzers=analyzers)
 
+    @property
+    def description(self):
+        return DESCRIPTION
+    
     def check_output_shape(self, input_array: np.ndarray, output_array: np.ndarray):
         expected_shape = (input_array.shape[0], 2)  # (N, label_and_return)
         is_correct = output_array.shape == expected_shape
