@@ -1,3 +1,3 @@
 from reinforce_trader.research.features.frac_diff_feature import FracDiffMultiChannelFeature
-from reinforce_trader.research.features.triple_barrier_feature import triple_barrier_feature
+from reinforce_trader.research.features.triple_barrier_feature import TripleBarrierFeature
 

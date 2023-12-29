@@ -13,16 +13,25 @@ class RandomForesModelTrainer(SupervisedModelTrainer):
             hparams,
             dl_client,
             feature_pipeline,
-            label_pipeline
+            label_pipeline,
         ):
         super().__init__(
             hparams,
             dl_client,
             feature_pipeline,
-            label_pipeline
+            label_pipeline,
         )
         self.window_size = self.hparams['feature_window_size'] + self.hparams['label_window_size']
 
+    @property
+    def description(self):
+        description = f"""
+This model trainer is a supervised model trainer. It is a random forest classifier.
+
+The trainer uses accuracy, F1 score and AUC of ROC as the metrics for model evaluation.
+"""
+        return description
+    
     def _get_data(self):
         # load a table
         df = self.dl_client.get_table(data_src='yfinance', ticker=self.hparams['ticker'])
@@ -39,11 +48,16 @@ class RandomForesModelTrainer(SupervisedModelTrainer):
             # split sequences into feature and target
             x = dataset_array[:, :self.hparams['feature_window_size'], :]
             y = dataset_array[:, self.hparams['feature_window_size']:, :]
-            x = self.feature_pipeline.run(x)
-            y = self.label_pipeline.run(y)
-
+            x, x_analysises = self.feature_pipeline.run(x)
+            y, y_analysises = self.label_pipeline.run(y)
+            
             datasets[dataset_name]['feature'] = x
             datasets[dataset_name]['label'] = y
+
+            self.analysises[dataset_name] = {}
+            self.analysises[dataset_name]['feature'] = x_analysises
+            self.analysises[dataset_name]['label'] = y_analysises
+
         return datasets
     
     def _train_step(self, x, y):

@@ -1,11 +1,15 @@
 import os
+from pprint import pprint
 
 import numpy as np
 
 from reinforce_trader.research.datalake_client import DatalakeClient
 from reinforce_trader.research.feature_pipeline import FeaturePipeline
-from reinforce_trader.research.features import triple_barrier_feature, FracDiffMultiChannelFeature
+from reinforce_trader.research.features import FracDiffMultiChannelFeature, TripleBarrierFeature
 from reinforce_trader.research.models.random_forest_model_trainer import RandomForesModelTrainer
+from reinforce_trader.research.analyzers import DistAnalyzer, CorrAnalyzer, AutocorrAnalyzer 
+from reinforce_trader.research.agents.report_analyst_agent import ReportAnalystAgent
+
 
 
 def main():
@@ -33,19 +37,26 @@ def main():
         pipeline=[
             np.log,
             FracDiffMultiChannelFeature,
-            lambda array: array.reshape(array.shape[0], -1)  # flatten the last 2 dimensions (seq * channel)
+            lambda array: array.reshape(array.shape[0], -1),  # flatten the last 2 dimensions (seq * channel)
         ],
         params={
             'FracDiffMultiChannelFeature': {'d': hparams['d'], 'threshold': hparams['threshold']}
+        },
+        analyzers={
+            'FracDiffMultiChannelFeature': [CorrAnalyzer()]
         }
     )
+
     label_pipeline = FeaturePipeline(
         pipeline=[
-            triple_barrier_feature,
-            lambda array: array[:, 0]  # use the labels only
+            TripleBarrierFeature,
+            lambda array: array[:, 0],  # use the labels only 
         ],
         params={
-            'triple_barrier_feature': {'r_stop': hparams['r_stop'], 'r_take': hparams['r_take']}
+            'TripleBarrierFeature': {'r_stop': hparams['r_stop'], 'r_take': hparams['r_take']}
+        },
+        analyzers={
+            'TripleBarrierFeature': [DistAnalyzer()]  # TODO: only Feature can use analyzer
         }
     )
 
@@ -56,9 +67,20 @@ def main():
         label_pipeline=label_pipeline,
     )
 
-    model, report = trainer.train()
-    print(f'{report=}')
+    model, report = trainer.train(to_analyst=True)
+    
+    report_analyst_agent = ReportAnalystAgent.from_llm_config(
+        llm_config={
+            'max_tokens': 6000,
+            'temperature': 0.3,
+            'model': 'gpt-3.5-turbo-16k'
+        }
+    )
+    analyst_report = report_analyst_agent.act(report=report)
 
+    with open('analyst_report.txt', 'w') as f:
+        f.write(analyst_report)
+    
 
 if __name__ == '__main__':
     main()
