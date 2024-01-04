@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
+import typing
 
 import numpy as np
 
 from reinforce_trader.research.feature_pipeline import FeaturePipeline
 from reinforce_trader.research.datalake_client import DatalakeClient
+from reinforce_trader.research.sampler.sampler import Sampler
 
 
 class SupervisedModelTrainer(ABC):
@@ -13,34 +15,49 @@ class SupervisedModelTrainer(ABC):
             dl_client: DatalakeClient,
             feature_pipeline: FeaturePipeline,
             label_pipeline: FeaturePipeline,
+            sampler: Sampler=None,
         ):
         self.hparams = hparams
         self.dl_client = dl_client
         self.feature_pipeline = feature_pipeline
         self.label_pipeline = label_pipeline
+        self.sampler = sampler
         self.datasets = {}
         self.analysises = {}
 
+        if self.sampler is None:
+            # use the default sampler -> no sampling
+            self.sampler = Sampler()
+
     def get_data(self, key):
         if key not in self.datasets:
-            self.datasets = self._get_data()
-        return self.datasets[key]
+            self.datasets = self._get_datasets()
+        
+        data_feature, data_label = self.datasets[key]['feature'], self.datasets[key]['label'] 
+        if key == 'train':
+            data_feature, data_label = self.sampler.sample(x=data_feature, y=data_label)
+            print(f'{data_feature.shape=} {data_label.shape=}')
+        return data_feature, data_label
     
     @property
     def description(self):
         return
     
     @abstractmethod
-    def _get_data(self):
+    def _get_datasets(self) -> typing.Dict[str, typing.Dict[str, np.ndarray]]:
         """define your data pipeline workflow here"""
 
     def train(self, to_analyst: bool=False):
-        data = self.get_data('train')
-        x_train, y_train = data['feature'], data['label']
-        model = self._train_step(x_train, y_train)
+        # initialize the report for analyst
         report = {'model_analysises': {}}
-        test_data = self.get_data('test')
-        x_test, y_test = test_data['feature'], test_data['label']
+
+        x_train, y_train = self.get_data('train')
+        if self.sampler.analyzer and self.sampler.analyzer.name == 'dist_analyzer':
+            # TEMP: analyze distribution of labels everytime?
+            analysis = self.sampler.analyzer(y_train, y_train)
+            report['sampler_analysises'] = {'dist_analyzer': analysis}
+        model = self._train_step(x_train, y_train)
+        x_test, y_test = self.get_data('test')
         report['model_analysises']['train'] = self._test_step(model, x_train, y_train)
         report['model_analysises']['test'] = self._test_step(model, x_test, y_test)
         # evaluation_report
@@ -49,6 +66,7 @@ class SupervisedModelTrainer(ABC):
             report['descriptions'] = {
                 'feature_pipeline': self.feature_pipeline.description,
                 'label_pipeline': self.label_pipeline.description,
+                'sampler': self.sampler.description,
                 'model': self.description
             }
         return model, report

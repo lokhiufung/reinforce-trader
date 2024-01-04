@@ -14,45 +14,50 @@ class RandomForesModelTrainer(SupervisedModelTrainer):
             dl_client,
             feature_pipeline,
             label_pipeline,
+            sampler=None,
         ):
         super().__init__(
             hparams,
             dl_client,
             feature_pipeline,
             label_pipeline,
+            sampler,
         )
-        self.window_size = self.hparams['feature_window_size'] + self.hparams['label_window_size']
+        self.window_size = self.hparams['data']['feature_window_size'] + self.hparams['data']['label_window_size']
 
     @property
     def description(self):
         description = f"""
-This model trainer is a supervised model trainer. It is a random forest classifier.
+This model trainer is a random forest model trainer. It is a random forest classifier.
 
 The trainer uses accuracy, F1 score and AUC of ROC as the metrics for model evaluation.
 """
         return description
     
-    def _get_data(self):
+    def _get_datasets(self):
         # load a table
-        df = self.dl_client.get_table(data_src='yfinance', ticker=self.hparams['ticker'])
+        dfs = self.dl_client.get_tables(data_source='yfinance', tickers=self.hparams['data']['tickers'])
+        df = dfs['GOOGL']  # TEMP: hard-coded for the moment
         # get the columns
-        df = df[['Open', 'High', 'Low', 'Close']]
+        df = df[['open', 'high', 'low', 'close']]
         # turn df to array
         array = get_rolling_window_sequences(df, window_size=self.window_size)
         # train-test split
-        array_splitted = gapped_data_splitter(array, test_size=self.hparams['test_size'], gap_size=self.hparams['gap_size'])
+        array_splitted = gapped_data_splitter(array, test_size=self.hparams['data_splitter']['test_size'], gap_size=self.hparams['data_splitter']['gap_size'])
         datasets = {}
         for dataset_name, dataset_array in array_splitted.items():
             datasets[dataset_name] = {}
 
             # split sequences into feature and target
-            x = dataset_array[:, :self.hparams['feature_window_size'], :]
-            y = dataset_array[:, self.hparams['feature_window_size']:, :]
+            x = dataset_array[:, :self.hparams['data']['feature_window_size'], :]
+            y = dataset_array[:, self.hparams['data']['feature_window_size']:, :]
             x, x_analysises = self.feature_pipeline.run(x)
             y, y_analysises = self.label_pipeline.run(y)
             
             datasets[dataset_name]['feature'] = x
             datasets[dataset_name]['label'] = y
+            # datasets[dataset_name]['feature'] = np.zeros_like(x)  # TEMP: this is useful for testing. The model should act as random guessing
+            # datasets[dataset_name]['label'] = y
 
             self.analysises[dataset_name] = {}
             self.analysises[dataset_name]['feature'] = x_analysises
@@ -61,7 +66,7 @@ The trainer uses accuracy, F1 score and AUC of ROC as the metrics for model eval
         return datasets
     
     def _train_step(self, x, y):
-        clf = RandomForestClassifier(random_state=self.hparams['seed'])
+        clf = RandomForestClassifier(**self.hparams['model'])
         clf.fit(x, y)
         return clf
 

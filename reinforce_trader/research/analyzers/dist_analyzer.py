@@ -31,7 +31,7 @@ class DistAnalyzer(Analyzer):
 
     def _run(self, input_array, output_array):
 
-        if len(input_array.shape) > 0:
+        if len(output_array.shape) == 2:
             # assume dimension to be (N, targets)
             labels = output_array[:, self.label_col]
         else:
