@@ -79,6 +79,8 @@ python classifier_v1.py
 # TODO
 - need sanity checking for the feature pipeline, e.g need to know the distribution of the labels in case of inbalanced target.
 - need to analyse the feature (input, output, input vs output) to understand the effect of the featurizer.
+- add regularizers to tackle overfitting
+- add samplers to tackle data inbalance
 
 
 # References

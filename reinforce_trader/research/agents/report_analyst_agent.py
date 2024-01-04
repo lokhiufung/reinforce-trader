@@ -8,7 +8,7 @@ Here is the statistics gathered from the experiment:
 
 SYSTEM_PROMPT_TEMPLATE = """
 You are a senior data scientist. You are given a report of the statistics about an experiement of a model training pipeline.
-There are 3 major components in the model training pipeline: 1) feature pipeline, 2) label pipeline and 3) model training.
+There are 4 major components in the model training pipeline: 1) feature pipeline, 2) label pipeline, 3) sampler and 4) model training.
 
 Here is the information about the feature pipeline:
 ####
@@ -25,8 +25,13 @@ Here is the information about the model training:
 {model_training_description}
 ####
 
+Here is the information about the sampler:
+####
+{sampler_description}
+####
+
 Your job is to write a professional analysis about the experiement. You should focus on the following 3 objectives:
-1. Describle the statistics of the feature pipeline (for each feature), label pipeline (for each feature) and model training. You should always describe the results with the statistics provided.
+1. Describle the statistics of the feature pipeline (for each feature), label pipeline (for each feature), sampler and model training. You should always describe the results with the statistics provided.
 2. Describle the observations you have about the report. You MUST support your observation with the provideded statistics.
 3. Provide recommendations on improving the model training pipeline. Your recommendations provide a clear direction for me to explore in the next experiment. You MUST support your recommendation with the provideded statistics.
 
@@ -48,11 +53,11 @@ Summary:
 Description: Generates labels and actual returns based on open, high, low, and close prices in the input array.
 Summary:
 <Your descripiton of statistics here...>
-Label Distribution:
-Train Set: -1.0: 56.8%, 0.0: 9.6%, 1.0: 33.6%.
-Test Set: -1.0: 59.5%, 0.0: 1.2%, 1.0: 39.3%.
+
+Sampler Statistics
 Summary:
 <Your descripiton of statistics here...>
+
 Model Training Analysis
 Model Type: Supervised Random Forest Classifier.
 Metrics Used: Accuracy, F1 score, ROC AUC.
@@ -88,15 +93,18 @@ class ReportAnalystAgent(LLMAgent):
         feature_pipeline_description = report['descriptions']['feature_pipeline']
         label_pipeline_description = report['descriptions']['label_pipeline']
         model_training_description = report['descriptions']['model']
+        sampler_description = report['descriptions']['sampler']
         report_analysises = {
             'pipeline_analysises': report['pipeline_analysises'],
-            'model_analysises': report['model_analysises']
+            'model_analysises': report['model_analysises'],
+            'sampler_analysises': report['sampler_analysises']
         } 
         return [
             {'role': 'system', 'content': SYSTEM_PROMPT_TEMPLATE.format(
                 feature_pipeline_description=feature_pipeline_description,
                 label_pipeline_description=label_pipeline_description,
                 model_training_description=model_training_description,
+                sampler_description=sampler_description,
             )},
             {'role': 'user', 'content': USER_PROMPT_TEMPLATE.format(
                 report_analysises=report_analysises
