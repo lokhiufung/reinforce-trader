@@ -34,9 +34,12 @@ class FeaturePipeline:
         pipeline_structure_string = ''
         for i, node in enumerate(self._pipeline):
             number = i + 1
+            analyzer_descriptions = '-'
             if isinstance(node, Feature):
                 feature_name = node.__class__.__name__
                 description = node.description
+                if node.analyzers:
+                    analyzer_descriptions = '\n'.join([f"""{analyzer.name}: {analyzer.description}""" for analyzer in node.analyzers])
             else:
                 feature_name = node.__name__
                 description = '-'
@@ -44,6 +47,10 @@ class FeaturePipeline:
 Feature number: {number}
 Feature name: {feature_name}
 Feature description: {description}
+Analyzers:
+----
+{analyzer_descriptions}
+----
 """
             pipeline_structure_string += feature_string + '\n'
         return pipeline_structure_string
@@ -53,9 +60,12 @@ Feature description: {description}
         pipeline_structure_string = self._create_feature_pipeline_string()
         description = f"""
 The feature pipeline transforms a ndarray to another ndarray, which contains useful features to train a machine learning model.
+There may be analyzers attached into the feature. These analyzer analyze the output array or the relation between input array and output array.
 
 Here is the structure of the feature pipeline:
+####
 {pipeline_structure_string}
+####
 """
 
         return description
