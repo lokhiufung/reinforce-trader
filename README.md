@@ -81,6 +81,7 @@ python classifier_v1.py
 - need to analyse the feature (input, output, input vs output) to understand the effect of the featurizer.
 - add regularizers to tackle overfitting
 - add samplers to tackle data inbalance
+- seperate data layer (including feature pipeline) from the model?
 
 
 # References
