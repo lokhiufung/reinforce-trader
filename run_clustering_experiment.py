@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 # from scipy.stats import skew, kurtosis
 
 from reinforce_trader.research.create_clustering_v1 import create_clustering_v1
@@ -8,7 +7,7 @@ from reinforce_trader.research.create_clustering_v1 import create_clustering_v1
 hparams = {
     'data': {
         'tickers': ['GOOGL'],
-        'window_size': 28,
+        'window_size': 20,
     },
     'feature_pipeline': {
     },
@@ -17,7 +16,7 @@ hparams = {
         'gap_size': 14,
     },
     'model': {
-        'n_clusters': 10,
+        'n_clusters': 20,
         'init': 'k-means++',
         'n_init': 'auto',
         'max_iter': 300,
@@ -38,53 +37,15 @@ def normalize_sequences(input_sequences: np.ndarray):
     # Reshape the output to add the third dimension back
     return transformed_sequences[..., np.newaxis]
 
-# def transform_sequences(input_sequences):
-#     """
-#     Transform sequences based on their shape features.
-    
-#     Parameters:
-#     input_sequences (numpy.ndarray): A 3D array of price sequences (shape: N x number_of_steps x 1)
-    
-#     Returns:
-#     numpy.ndarray: Transformed sequences with the same shape as input.
-#     """
-#     num_sequences, num_steps, _ = input_sequences.shape
-#     transformed_sequences = []
 
-#     # Iterate over each sequence
-#     for i in range(num_sequences):
-#         seq = input_sequences[i, :, 0]  # Extract the sequence as 1D array
-#         # seq = np.log(seq) - np.log(seq[0])
-#         # Calculate various statistical features
-#         mean_price = np.mean(seq)
-#         max_price = np.max(seq)
-#         min_price = np.min(seq)
-#         std_dev = np.std(seq)
-#         price_range = max_price - min_price
-#         price_skewness = skew(seq)
-#         price_kurtosis = kurtosis(seq)
-#         price_change = seq[-1] - seq[0]
-
-#         # Combine the features into a single value for this sequence
-#         combined_feature = (mean_price, max_price, min_price, std_dev, price_range, price_skewness, price_kurtosis, price_change)
-
-#         # Assign this combined feature value across all steps for this sequence
-#         transformed_sequences.append(np.array(combined_feature).reshape(len(combined_feature), 1))
-
-#     return np.array(transformed_sequences)
-
-
-def main():
-    k = hparams['model']['n_clusters']
-    trainer = create_clustering_v1(hparams)
-    
-    model, _ = trainer.train(to_analyst=False)
-    features, _ = trainer.get_data('train')
-
-    labels = model.predict(features)
+def plot_with_matplotlib(k, labels, features, centroids):
+    import matplotlib.pyplot as plt
 
     # Plotting the sequences in subplots for each cluster
-    fig, axes = plt.subplots(k, 1, figsize=(10, 6 * k))
+    fig, axes = plt.subplots(k, 1, figsize=(15, 4 * k), sharex=True)
+    
+    if k == 1:  # If there's only one cluster, axes will not be an array
+        axes = [axes]
 
     for i, ax in enumerate(axes):
         cluster_indices = np.where(labels == i)[0]
@@ -94,49 +55,94 @@ def main():
             ax.set_title(f'Cluster {i} (Empty)')
             continue
 
-        subset_indices = cluster_indices[:10]  # Plot up to 10 sequences per cluster
-        for index in subset_indices:
-            ax.plot(features[index, :], label=f'Sequence {index}')
-            ax.legend()
+        # Plot all sequences in the cluster
+        for index in cluster_indices:
+            ax.plot(features[index, :], color='blue', linewidth=0.5, alpha=0.1)
 
-        ax.set_title(f'Cluster {i}')
-        ax.set_xlabel('Time Steps')
-        ax.set_ylabel('Sequence Value')
+        # Plot the centroid with a more prominent line
+        ax.plot(centroids[i], color='yellow', linewidth=2, label=f'Centroid {i}')
+        ax.legend(loc='upper right')
+
+        ax.set_title(f'Cluster {i} centroid (n={len(cluster_indices)})')
+        ax.set_xlabel('Days')
+        ax.set_ylabel('Normalized Value')
 
     plt.tight_layout()
     plt.show()
-    # Dictionary to store cluster statistics
-    # cluster_stats = {}
-
-    # for i in range(k):
-    #     cluster_indices = np.where(labels == i)[0]
-    #     cluster_features = features[cluster_indices]
-
-    #     # Calculating statistics for each feature across the cluster
-    #     mean_cluster_features = np.mean(cluster_features, axis=0)
-    #     std_cluster_features = np.std(cluster_features, axis=0)
-    #     min_cluster_features = np.min(cluster_features, axis=0)
-    #     max_cluster_features = np.max(cluster_features, axis=0)
-    #     skewness_cluster_features = skew(cluster_features, axis=0)
-    #     kurtosis_cluster_features = kurtosis(cluster_features, axis=0)
-
-    #     # Storing in dictionary
-    #     cluster_stats[i] = {
-    #         'mean': mean_cluster_features,
-    #         'std': std_cluster_features,
-    #         'min': min_cluster_features,
-    #         'max': max_cluster_features,
-    #         'skewness': skewness_cluster_features,
-    #         'kurtosis': kurtosis_cluster_features
-    #     }
-
-    #     # Print or return cluster_stats as needed
-    #     for cluster, stats in cluster_stats.items():
-    #         print(f"Cluster {cluster}:")
-    #         for stat_name, stat_values in stats.items():
-    #             print(f"  {stat_name}: {stat_values}")
-    #         print()
 
 
+def plot_with_plotly(k, labels, features, centroids):
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+
+    # Create a subplot figure with k rows
+    fig = make_subplots(rows=k, cols=1, shared_xaxes=True, vertical_spacing=0.02)
+
+    for i in range(k):
+        cluster_indices = np.where(labels == i)[0]
+        
+        # For each cluster, add a subplot with the sequences
+        for index in cluster_indices:
+            fig.add_trace(
+                go.Scatter(
+                    x=np.arange(features.shape[1]), 
+                    y=features[index, :].flatten(), 
+                    mode='lines',
+                    line=dict(width=1, color='blue'),
+                    opacity=0.1,  # Set opacity directly for the Scatter object
+                    showlegend=False,
+                    name=f'Cluster {i} Sequence'
+                ),
+                row=i+1, col=1
+            )
+        
+        # Add the centroid with a more prominent line
+        fig.add_trace(
+            go.Scatter(
+                x=np.arange(features.shape[1]), 
+                y=centroids[i].flatten(), 
+                mode='lines+markers',
+                line=dict(width=2, color='yellow'),
+                marker=dict(size=4),
+                name=f'Cluster {i} Centroid'
+            ),
+            row=i+1, col=1
+        )
+
+    # Update layout for each subplot
+    for i in range(k):
+        fig.update_yaxes(title_text=f'Cluster {i}', row=i+1, col=1)
+
+    # Update the layout of the figure
+    fig.update_layout(
+        title='Clusters and Centroids',
+        xaxis_title='Days',
+        height=300 * k,
+        template='plotly_white',
+        showlegend=False
+    )
+
+    fig.show()
+
+
+def main():
+    model_ckpt_dir = './model_ckpts/kmeans-20'
+
+    k = hparams['model']['n_clusters']
+    trainer = create_clustering_v1(hparams)
+    
+    model, _ = trainer.train(to_analyst=False)
+
+    trainer.save(model_ckpt_dir)
+    # features, _ = trainer.get_data('train')
+
+    # labels = model.predict(features)
+
+    #  # Get centroids
+    # centroids = model.cluster_centers_
+
+    # plot_with_plotly(k, labels, features, centroids)
+
+    
 if __name__ == '__main__':
     main()
