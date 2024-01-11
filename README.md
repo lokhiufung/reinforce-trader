@@ -90,6 +90,7 @@ python classifier_v1.py
 2. suggestions on fastapi application: https://www.youtube.com/watch?v=HTSK6eRwyGM
 3. why do we need to detrend?: https://www.svds.com/avoiding-common-mistakes-with-time-series/
 4. classifying sequences using unsupervised learning: https://datascience.columbia.edu/wp-content/uploads/2020/12/33_JPMorgan_Identifying-Trading-Opportunities.pdf
+5. wiki of entropy: https://en.wikipedia.org/wiki/Entropy_(information_theory)
 
 
 
