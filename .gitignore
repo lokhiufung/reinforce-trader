@@ -166,3 +166,6 @@ mytest*.py
 data/
 datalake_template.yaml
 analyst_reports/
+corr.csv
+model_ckpts/
+

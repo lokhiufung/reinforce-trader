@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
 import typing
+import os
 
 import numpy as np
+import yaml
+from joblib import dump, load
 
 from reinforce_trader.research.feature_pipeline import FeaturePipeline
 from reinforce_trader.research.datalake_client import DatalakeClient
@@ -90,4 +93,40 @@ class BaseModelTrainer(ABC):
 
     @abstractmethod
     def _test_step(self, clf, x: np.ndarray, y: np.ndarray):
-        """a step to test""" 
+        """a step to test"""
+
+    def save(self, model_ckpt_dir):
+        if not os.path.exists(model_ckpt_dir):
+            os.makedirs(model_ckpt_dir)
+            
+        # TODO: this is only valid for sklearn models
+        model_file_path = os.path.join(model_ckpt_dir, 'model.joblib')
+        hparams_file_path = os.path.join(model_ckpt_dir, 'hparams.yaml')
+        dump(self.model, model_file_path)
+
+        # write a yaml file
+        with open(hparams_file_path, 'w') as f:
+            yaml.safe_dump(self.hparams, f)
+    
+    @classmethod
+    def from_model_ckpt(
+        cls,
+        model_ckpt_dir: str,
+        dl_client: DatalakeClient,
+        feature_pipeline: FeaturePipeline,
+        sampler: Sampler=None,
+    ):
+        model_file_path = os.path.join(model_ckpt_dir, 'model.joblib')
+        hparams_file_path = os.path.join(model_ckpt_dir, 'hparams.yaml')
+
+        with open(hparams_file_path, 'r') as f:
+            hparams = yaml.safe_load(f)
+        
+        trainer = cls(
+            hparams,
+            dl_client,
+            feature_pipeline,
+            sampler,
+        )
+        trainer.model = load(model_file_path)
+        return trainer

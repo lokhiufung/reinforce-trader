@@ -20,7 +20,8 @@ def create_classifier_v1(hparams):
             np.log,
             FracDiffMultiChannelFeature,
             lambda array: array.reshape(array.shape[0], -1),  # flatten the last 2 dimensions (seq * channel)
-            # lambda array: array[:, :, 0].reshape(array.shape[0], -1),  # flatten the last 2 dimensions (seq * channel)
+            # lambda array: array[:, [77, 75, 51, 41, 49, 82, 83, 78, 39, 54]]  # top 10 faetures from the random forest
+            lambda array: array[:, :, 0].reshape(array.shape[0], -1),  # flatten the last 2 dimensions (seq * channel)
         ],
         params={
             'FracDiffMultiChannelFeature': {'d': hparams['feature_pipeline']['d'], 'threshold': hparams['feature_pipeline']['threshold']}

@@ -45,12 +45,11 @@ def main():
     trainer = create_classifier_v1(hparams=HPARAMS)
     model, report = trainer.train(to_analyst=True)
 
-
     report_analyst_agent = ReportAnalystAgent.from_llm_config(
         llm_config={
-            'max_tokens': 6000,
+            'max_tokens': 4000,
             'temperature': 0.3,
-            'model': 'gpt-4'
+            'model': 'gpt-4-1106-preview'
         }
     )
     # Generate the report

@@ -31,3 +31,24 @@ def gapped_data_splitter(array: np.ndarray, test_size: float, gap_size: int) -> 
 
     return {'train': train_set, 'test': test_set}
 
+
+def gapped_cv_data_splitter(array, num_folds: int, gap_size: int, test_size: float) -> typing.List[dict]:
+    if not 1 < num_folds <= len(array):
+        raise ValueError("Number of folds must be at least 2 and at most the length of the array.")
+
+    datasets_all = []
+    fold_size = int(np.floor((len(array) - (num_folds - 1) * gap_size) / num_folds))
+    
+    if fold_size <= 0:
+        raise ValueError("Fold size is too small for the given number of folds and gap size.")
+
+    for fold_index in range(num_folds):
+        fold_start = fold_index
+        fold_end = fold_index + fold_size + gap_size
+        datasets = gapped_data_splitter(
+            array=array[fold_start:fold_end],
+            test_size=test_size,
+            gap_size=gap_size,
+        )
+        datasets_all.append(datasets)
+    return datasets_all

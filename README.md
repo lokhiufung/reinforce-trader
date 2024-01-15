@@ -81,12 +81,16 @@ python classifier_v1.py
 - need to analyse the feature (input, output, input vs output) to understand the effect of the featurizer.
 - add regularizers to tackle overfitting
 - add samplers to tackle data inbalance
-- seperate data layer (including feature pipeline) from the model?
+- seperate data layer (including feature pipeline) from the model? (YES, you need 2 models from the same feature pipeline)
+- refactor code for data layer and clustering
 
 
 # References
 1. https://medium.com/@masteringllm/mastering-react-prompting-a-crucial-step-in-langchain-implementation-a-guided-example-for-agents-efdf1b756105
 2. suggestions on fastapi application: https://www.youtube.com/watch?v=HTSK6eRwyGM
+3. why do we need to detrend?: https://www.svds.com/avoiding-common-mistakes-with-time-series/
+4. classifying sequences using unsupervised learning: https://datascience.columbia.edu/wp-content/uploads/2020/12/33_JPMorgan_Identifying-Trading-Opportunities.pdf
+5. wiki of entropy: https://en.wikipedia.org/wiki/Entropy_(information_theory)
 
 
 

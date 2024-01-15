@@ -7,6 +7,21 @@ import yaml
 import pandas as pd
 
 
+
+def select_by_date_range(df, start_date, end_date):
+    # Assuming 'df' is your DataFrame
+    # First, convert the 'ts' column to datetime
+    df['ts'] = pd.to_datetime(df['ts'])
+
+    start_date = pd.to_datetime(start_date)
+    # Convert the start and end dates to datetime
+    end_date = pd.to_datetime(end_date)
+
+    # Select the data within the date range
+    filtered_df = df[(df['ts'] >= start_date) & (df['ts'] <= end_date)]
+    return filtered_df
+
+
 # data lake client object: for data selection, loading and transformation
 class DatalakeClient:
     DEFAULT_DATALAKE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../data'))
@@ -131,18 +146,38 @@ class DatalakeClient:
     def get_file_path(self, data_source, ticker, ver='raw_data'):
         return os.path.join(self.datalake_dir, f'{data_source}/{ver}/{ticker}_historical_data.csv')
     
-    def get_table(self, data_source, ticker: str, set_index=False) -> pd.DataFrame:
+    def get_table(
+            self, 
+            data_source, 
+            ticker: str,
+            start_date: str=None, 
+            end_date: str=None,
+            columns: typing.List[str]=None,
+            set_index: bool=False
+        ) -> pd.DataFrame:
         file_path = self.get_file_path(data_source, ticker, ver='raw_data')
         df = pd.read_csv(file_path, header=0)
         if set_index:
             df['ts'] = pd.to_datetime(df['ts'])
             df.set_index('ts', inplace=True)
+        if columns is not None and isinstance(columns, list):
+            df = df[columns]
+        if start_date is not None or end_date is not None:
+            df = select_by_date_range(df, start_date, end_date)
         return df
 
-    def get_tables(self, data_source, tickers: typing.List[str]) -> typing.Dict[str, pd.DataFrame]:
+    def get_tables(
+            self,
+            data_source,
+            tickers: typing.List[str],
+            start_date: str=None,
+            end_date: str=None,
+            columns: typing.List[str]=None,
+            set_index=False
+        ) -> typing.Dict[str, pd.DataFrame]:
         tables = {}
         for ticker in tickers:
-            df = self.get_table(data_source, ticker)
+            df = self.get_table(data_source, ticker, columns, start_date, end_date, set_index)
             tables[ticker] = df
         return tables
     
