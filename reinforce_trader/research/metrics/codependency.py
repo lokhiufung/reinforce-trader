@@ -70,3 +70,34 @@ def get_variation_of_information(s_1, s_2, bins=100, norm=False):
         vi = 0.0
     return vi
 
+
+def get_normalized_conditional_entropy(labels_1, labels_2):
+    """
+    labels_1 are the predictors and labels_2 are the targets
+    """
+    # Find the unique labels and their corresponding counts for both sequences
+    unique_labels_1, counts_1 = np.unique(labels_1, return_counts=True)
+    
+    # Calculate the total number of samples
+    total_samples = len(labels_1)
+    
+    # Calculate the probability of each label in labels_60
+    prob_1 = counts_1 / total_samples
+    
+    # Calculate the entropy for each unique label in labels_60
+    conditional_entropy = 0
+    for label, prob in zip(unique_labels_1, prob_1):
+        # Filter labels_20 by the current label of labels_60
+        filtered_labels_2 = labels_2[labels_1 == label]
+        
+        # Calculate the entropy of labels_20 conditioned on the current label of labels_60
+        if len(filtered_labels_2) > 0:
+            _, conditional_counts = np.unique(filtered_labels_2, return_counts=True)
+            conditional_prob = conditional_counts / conditional_counts.sum()
+            conditional_entropy += prob * entropy(conditional_prob, base=2)
+    
+    # Normalize the entropy
+    n_clusters = len(np.unique(labels_2))  # Assuming labels_20 represent different clusters
+    normalized_entropy = conditional_entropy / np.log2(n_clusters)
+    
+    return normalized_entropy
