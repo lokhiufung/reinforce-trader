@@ -160,10 +160,10 @@ class DatalakeClient:
         if set_index:
             df['ts'] = pd.to_datetime(df['ts'])
             df.set_index('ts', inplace=True)
-        if columns is not None and isinstance(columns, list):
-            df = df[columns]
         if start_date is not None or end_date is not None:
             df = select_by_date_range(df, start_date, end_date)
+        if columns is not None and isinstance(columns, list):
+            df = df[columns]
         return df
 
     def get_tables(
