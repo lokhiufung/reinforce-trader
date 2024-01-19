@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from reinforce_trader.research.datalake_client import DatalakeClient
 from reinforce_trader.research.feature_pipeline import FeaturePipeline
 from reinforce_trader.research.dataset import Dataset
-from reinforce_trader.research.models.sklearn_model_trainer import SklearnModelTrainder
+from reinforce_trader.research.models.sklearn_model_trainer import SklearnModelTrainer
 from reinforce_trader.research.features.dct_feature import get_dct, get_dct_reconstruction
 from reinforce_trader.research.features.standardizing_feature import get_minmax_scaling
 from reinforce_trader.research.visualizations import plot_clustered_sequences_with_plotly, plot_elbow_and_silhouette
@@ -60,7 +60,7 @@ def main():
     )
 
     # create the model
-    trainer = SklearnModelTrainder(
+    trainer = SklearnModelTrainer(
         hparams=hparams['model'],
         model_name='kmeans',
     )

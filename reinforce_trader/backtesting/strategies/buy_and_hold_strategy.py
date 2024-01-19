@@ -5,7 +5,12 @@ class BuyAndHoldStrategy(BaseStrategy):
 
     def on_bar(self, o, h, l, c, v, signal):
         if signal == 1:
-            return self.bet_size
-        elif signal == 0:
-            return -1 * self.bet_size
+            # all-in with a given bet size at the beginning
+            return (self.bet_size * self.balance) // c
+        elif signal == -1:
+            # sell all assets = clear position
+            return -1 * self.position
+        else:
+            return 0
+            
         

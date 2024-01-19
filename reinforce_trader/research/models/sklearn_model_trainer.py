@@ -14,7 +14,7 @@ MODEL_FULL_NAMES = {
 }
 
 
-class SklearnModelTrainder:
+class SklearnModelTrainer:
     def __init__(self, hparams: dict, model_name: str, sklearn_model=None):
         self.hparams = hparams
         self.model_name = model_name

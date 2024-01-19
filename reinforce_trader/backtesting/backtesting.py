@@ -69,33 +69,42 @@ def plot_backtesting_results(df):
 
 
 class Backtesting:
-    def __init__(self, initial_balance=100*1000):
-        self.initial_balance = initial_balance  # 100k usd default
+    def __init__(self):
         # consider only single asset now
         self.position = 0
-        self.avg_px = 0
+        self.initial_balance = None
+        self.balance = None
+        self.avg_px = None
         self.df = None
     
     def update_avg_px(self, px, size):
-        # only update when buying
-        self.avg_px = (self.avg_px * self.position + px * size) / (self.position + size)
+        if self.avg_px is None:
+            self.avg_px = px
+        else:
+            # only update when buying
+            self.avg_px = (self.avg_px * self.position + px * size) / (self.position + size)
         return self.avg_px
 
     def add_data(self, df: pd.DataFrame):
         self.df = df
 
     def run(self, strategy, signaller, plot=True):
+
+        # set balance from the strategy
+        self.balance = strategy.get_balance()
+        self.initial_balance = strategy.get_balance()
+
         window_size = signaller.window_size  # only the signaller knows the window_size
         sequences = get_rolling_window_sequences(self.df, window_size=window_size)
 
         signals = signaller.get_signals(sequences)
-        df = self.df.iloc[window_size-1:]  # remove rows for preparation
+        df = self.df.iloc[window_size-1:, :]  # remove rows for preparation
 
         # actions = [strategy.on_signal(signal) for signal in signals]
 
         adjusted_actions = []
         # positions = []
-        for signal, bar in zip(signal, df[['open', 'high', 'low', 'close', 'volume']].to_records()):
+        for signal, bar in zip(signals, df[['open', 'high', 'low', 'close', 'volume']].to_records()):
             action = strategy.on_bar(
                 bar['open'],
                 bar['high'],
@@ -109,22 +118,27 @@ class Backtesting:
                 action = 0
             ### refactor this part later
             if action > 0:
-                avg_px = self.update_avg_px(px=bar['close'], size=action)
+                self.update_avg_px(px=bar['close'], size=action)
+                self.balance -= bar['close'] * action
+            elif action < 0:
+                # selling an asset doesnt affect the cost
+                self.balance -= bar['close'] * action
+            strategy.on_balance_update(balance=self.balance)
             self.position += action
-            strategy.on_position_update(avg_px=avg_px, postion=self.position)
+            strategy.on_position_update(avg_px=self.avg_px, position=self.position)
             ###
             # positions.append(self.position)
             adjusted_actions.append(action)
 
-        self.df['signal'] = signals
-        self.df['action'] = adjusted_actions
-        self.df['position'] = self.df['action'].cumsum()
-        self.df['exposure'] = self.df['position'] * self.df['close']  # exposure in USD
-        self.df['balance'] = self.initial_balance + (-1 * self.df['action'] * self.df['close']).cumsum()  # use the close price as entry price
-        self.df['portfolio_value'] = self.df['exposure'] + self.df['balance']
-        self.df = self.df.set_index('ts')
+        df['signal'] = signals
+        df['action'] = adjusted_actions
+        df['position'] = df['action'].cumsum()
+        df['exposure'] = df['position'] * df['close']  # exposure in USD
+        df['balance'] = self.initial_balance + (-1 * df['action'] * df['close']).cumsum()  # use the close price as entry price
+        df['portfolio_value'] = df['exposure'] + df['balance']
+        df = df.set_index('ts')
         if plot:
-            plot_backtesting_results(self.df)
+            plot_backtesting_results(df)
 
         return self.df
     
