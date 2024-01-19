@@ -1,10 +1,12 @@
 # TODO: refactor the code
 import numpy as np
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 from scipy.signal import argrelextrema
 from scipy.stats import entropy
 
 from reinforce_trader.research.metrics.codependency import get_normalized_conditional_entropy
+from reinforce_trader.research.features.standardizing_feature import get_minmax_scaling
 
 
 def find_pips(price_sequence, order=1):
@@ -296,3 +298,45 @@ def plot_elbow_and_silhouette(sse, silhouette_scores, db_index):
     # Note: Uncomment the above lines and implement the gap statistic calculation to use this
     
     plt.show()
+
+
+def plot_feature_label_sequences(selected_features, selected_targets):
+    selected_sequences = np.concatenate((selected_features, selected_targets), axis=1)
+    selected_sequences = get_minmax_scaling(selected_sequences)
+    selected_sequences = selected_sequences[:, :, 0]
+    
+    # Plotting
+    fig = go.Figure()
+
+    # Add each sequence to the plot
+    for i, seq in enumerate(selected_sequences):
+        fig.add_trace(go.Scatter(
+            x=np.arange(seq.shape[0]), 
+            y=seq, 
+            mode='lines', 
+            line=dict(width=1, color='purple'),  # Set line color to purple
+            showlegend=False
+        ))
+
+    # Calculate and add the mean sequence (if that's what the yellow line represents)
+    mean_sequence = np.mean(selected_sequences, axis=0)
+    fig.add_trace(go.Scatter(
+        x=np.arange(mean_sequence.shape[0]), 
+        y=mean_sequence, 
+        mode='lines', 
+        line=dict(width=2, color='yellow'),  # Set line color to yellow
+        name='Mean Sequence'
+    ))
+
+    # Add a vertical line at step 28
+    fig.add_vline(x=28, line=dict(color='red', width=2, dash='dash'))
+
+    # Update layout
+    fig.update_layout(
+        title='Price Sequences Visualization',
+        xaxis_title='Time Step',
+        yaxis_title='Price',
+        template='plotly_white'
+    )
+
+    fig.show()
