@@ -340,3 +340,27 @@ def plot_feature_label_sequences(selected_features, selected_targets):
     )
 
     fig.show()
+
+
+def plot_histogram_of_label_distribtuion(labels):
+        unique_labels = np.unique(labels)
+        # Plotting the histogram of labels
+        fig = go.Figure(data=[go.Histogram(x=labels, marker_color='lightskyblue', opacity=0.75, histnorm='probability')])
+        
+        # Update layout for the histogram
+        fig.update_layout(
+            title='Distribution of Labels',
+            xaxis_title='Label',
+            yaxis_title='Count',
+            xaxis=dict(
+                title='Label',
+                tickmode='array',
+                tickvals=unique_labels,
+                ticktext=[str(label) for label in unique_labels]
+            ),
+            bargap=0.2,  # Space between bars
+            template='plotly_white'
+        )
+
+        # Show the plot
+        fig.show()
