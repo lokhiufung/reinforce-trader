@@ -7,7 +7,7 @@ from reinforce_trader.research.get_sequences import get_rolling_window_sequences
 
 
 def plot_backtesting_results(df):
-    fig = make_subplots(rows=5, cols=1, shared_xaxes=True, 
+    fig = make_subplots(rows=6, cols=1, shared_xaxes=True, 
         subplot_titles=('Stock Price and Signals', 'Signal Over Time', 'Balance Over Time', 'Exposure Over Time'),
         vertical_spacing=0.1
     )
@@ -29,6 +29,7 @@ def plot_backtesting_results(df):
     balance_trace = go.Scatter(x=df.index, y=df['balance'], name='Balance', line=dict(color='purple', width=2, dash='dash'))
     exposure_trace = go.Scatter(x=df.index, y=df['exposure'], name='Exposure', line=dict(color='black', width=2, dash='dash'))
     portfolio_trace = go.Scatter(x=df.index, y=df['portfolio_value'], name='Portfolio', line=dict(color='black', width=2, dash='dash'))
+    mdd_trace = go.Scatter(x=df.index, y=df['mdd'], name='Portfolio', line=dict(color='black', width=2, dash='dash'))
 
     # Add traces to the figure
     fig.add_trace(price_trace, row=1, col=1)
@@ -38,7 +39,7 @@ def plot_backtesting_results(df):
     fig.add_trace(balance_trace, row=3, col=1)
     fig.add_trace(exposure_trace, row=4, col=1)
     fig.add_trace(portfolio_trace, row=5, col=1)
-
+    fig.add_trace(mdd_trace, row=6, col=1)
 
     # Set up the layout for the figure
     fig.update_layout(
@@ -57,15 +58,14 @@ def plot_backtesting_results(df):
     fig.update_yaxes(title_text='Balance (USD)', row=3, col=1)
     fig.update_yaxes(title_text='Exposure (USD)', row=4, col=1)
     fig.update_yaxes(title_text='Portfolio (USD)', row=5, col=1)
-
+    fig.update_yaxes(title_text='Maximum Drawdown (%)', row=6, col=1)
 
     # Update layout for shared x-axis (dates)
     # fig.update_xaxes(title_text='Date', row=1, col=1)
     # fig.update_xaxes(title_text='Date', row=2, col=1)
-    fig.update_xaxes(title_text='Date', row=5, col=1)
+    fig.update_xaxes(title_text='Date', row=6, col=1)
 
     fig.show()
-
 
 
 class Backtesting:
@@ -136,6 +136,8 @@ class Backtesting:
         df['exposure'] = df['position'] * df['close']  # exposure in USD
         df['balance'] = self.initial_balance + (-1 * df['action'] * df['close']).cumsum()  # use the close price as entry price
         df['portfolio_value'] = df['exposure'] + df['balance']
+        # maximum drawdown
+        df['mdd'] = 100 * (df['portfolio_value'].cummax() - df['portfolio_value']) / df['portfolio_value']
         df = df.set_index('ts')
         if plot:
             plot_backtesting_results(df)
