@@ -1,5 +1,9 @@
 # TODO: this model trainer shoulds works for all sklearn models and disentagnle the data layer and feature layer from the model
+import os
 from importlib import import_module
+
+from joblib import dump, load
+import yaml
 
 from reinforce_trader.research.dataset import Dataset
 
@@ -76,3 +80,36 @@ class SklearnModelTrainder:
         else:
             predictions = self.model.predict(feature)
         # TODO
+            
+    def save(self, model_ckpt_dir):
+        if not os.path.exists(model_ckpt_dir):
+            os.makedirs(model_ckpt_dir)
+            
+        # TODO: this is only valid for sklearn models
+        model_file_path = os.path.join(model_ckpt_dir, 'model.joblib')
+        hparams_file_path = os.path.join(model_ckpt_dir, 'hparams.yaml')
+        dump(self.model, model_file_path)
+
+        # write a yaml file
+        with open(hparams_file_path, 'w') as f:
+            yaml.safe_dump(self.hparams, f)
+    
+    @classmethod
+    def from_model_ckpt(
+        cls,
+        model_name: str,
+        model_ckpt_dir: str,
+    ):
+        model_file_path = os.path.join(model_ckpt_dir, 'model.joblib')
+        hparams_file_path = os.path.join(model_ckpt_dir, 'hparams.yaml')
+
+        with open(hparams_file_path, 'r') as f:
+            hparams = yaml.safe_load(f)
+        
+        sklearn_model = load(model_file_path)
+        trainer = cls(
+            hparams,
+            model_name,
+            sklearn_model=sklearn_model,
+        )
+        return trainer

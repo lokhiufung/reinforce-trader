@@ -37,7 +37,9 @@ def main():
     df = dl_client.get_table(
         data_source='yfinance',
         ticker='GOOGL',
-        columns=['close']
+        columns=['close'],
+        start_date='2013-01-01',
+        end_date='2018-12-31'
     )
     dataset = Dataset(df).create_partitions(
         test_size=0.1,
@@ -63,6 +65,8 @@ def main():
         model_name='kmeans',
     )
     model = trainer.train(dataset, feature_pipeline)
+
+    # trainer.save(model_ckpt_dir='./model_ckpts/kmeans-28')
 
     # visualize the sequences
     sequences = dataset.get_partition(
