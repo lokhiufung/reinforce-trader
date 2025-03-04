@@ -1,5 +1,10 @@
 # Reinforce your trades with trades
 
+# IMPORTANT
+This repository will be refactor into multiple separate projects. I will keep updating the progress.
+For data pipeline of historical data, it will be moved to [trading-data](https://github.com/lokhiufung/trading-data)
+
+
 `reinforce-trader` is an open-source trading journal app that provides a comprehensive solution for trader to track, analyse and improve their trading strategies. The best way to learn anything is to learn from your own mistakes. `reinforce-trader` aims to provide a solution for traders so that they can maintain a systematic approach to *"reinforce"* their trading strategies.
 
 `reinforce-trader` emphasizes the use of technical pattarns when traders make trading decisions. Traders often use technical patterns to find entry points and exit points. e.g Drawing lines of resistance levels and supporting levels, Drawing a triangle pattern, ...etc. Therefore, `reinforce-traders` allows you to upload an image to capture the moment of trade. I personally use [TradingView](https://www.tradingview.com/) to draw lines and you can easily download the chart image using Tradingview's "Take a Snapshot" function.
